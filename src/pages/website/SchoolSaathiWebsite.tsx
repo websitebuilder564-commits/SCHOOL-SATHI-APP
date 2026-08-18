@@ -16,6 +16,7 @@ import { EscalationSection } from './components/EscalationSection';
 import { SecuritySection } from './components/SecuritySection';
 import { CtaSection } from './components/CtaSection';
 import { WebsiteFooter } from './components/WebsiteFooter';
+import { BotpressChatbot } from '../../components/chat/BotpressChatbot';
 import { UserRole } from '../../types';
 
 interface SchoolSaathiWebsiteProps {
@@ -95,6 +96,9 @@ export const SchoolSaathiWebsite: React.FC<SchoolSaathiWebsiteProps> = ({
 
       {/* 17. Complete Institutional Footer */}
       <WebsiteFooter onOpenPortal={onOpenPortal} />
+
+      {/* 18. Botpress AI Conversational Webchat Widget */}
+      <BotpressChatbot onNavigatePortal={onOpenPortal} />
     </div>
   );
 };

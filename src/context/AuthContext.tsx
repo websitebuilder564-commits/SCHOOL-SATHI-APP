@@ -1,13 +1,15 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, UserRole } from '../types';
 import { authService, AuthResponse } from '../services/authService';
 import { MOCK_USERS } from '../data/mockData';
+import { supabase } from '../lib/supabase';
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password?: string) => Promise<AuthResponse>;
+  loginWithSupabase: (email: string, password?: string) => Promise<AuthResponse>;
   loginStudent: (params: { studentName: string; admissionNo: string; studentClass: string; mobile: string; rollNo?: number | string }) => Promise<AuthResponse>;
   loginParent: (params: { studentName: string; admissionNo: string; studentClass: string; mobile: string; rollNo?: number | string }) => Promise<AuthResponse>;
   loginTeacher: (params: { officialId: string; secretCode: string }) => Promise<AuthResponse>;
@@ -25,11 +27,64 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(() => authService.getCurrentUser());
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
+  // Sync session with Supabase on mount and listen to auth changes
+  useEffect(() => {
+    let isMounted = true;
+
+    // Check active Supabase session
+    const checkSupabaseSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user && isMounted && !user) {
+          const determinedUser = await authService.checkProfileAndDetermineRole(session.user);
+          if (isMounted) {
+            setUser(determinedUser);
+            authService.completeSuccessfulLogin(determinedUser, 'Supabase Session Restore');
+          }
+        }
+      } catch {
+        // Fallback
+      }
+    };
+
+    checkSupabaseSession();
+
+    // Subscribe to auth state changes (School Saathi -> Login -> Supabase Auth -> Check Profile -> Determine Role)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        const determinedUser = await authService.checkProfileAndDetermineRole(session.user);
+        if (isMounted) {
+          setUser(determinedUser);
+          authService.completeSuccessfulLogin(determinedUser, 'Supabase Auth Event');
+        }
+      } else if (event === 'SIGNED_OUT') {
+        if (isMounted) {
+          setUser(null);
+        }
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
   const handleAuthResult = (res: AuthResponse): AuthResponse => {
     if (res.success && res.user) {
       setUser(res.user);
     }
     return res;
+  };
+
+  const loginWithSupabase = async (email: string, password?: string): Promise<AuthResponse> => {
+    setIsLoading(true);
+    try {
+      const res = await authService.loginWithSupabase(email, password);
+      return handleAuthResult(res);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const login = async (email: string, password?: string): Promise<AuthResponse> => {
@@ -120,6 +175,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         isAuthenticated: !!user,
         isLoading,
         login,
+        loginWithSupabase,
         loginStudent,
         loginParent,
         loginTeacher,

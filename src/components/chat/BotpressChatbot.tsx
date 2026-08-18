@@ -9,19 +9,19 @@ import {
   VolumeX, 
   RefreshCw, 
   ExternalLink,
-  ChevronDown,
   Minimize2,
   Maximize2,
-  School,
-  GraduationCap,
-  Users,
-  ShieldCheck,
-  Zap,
   HelpCircle,
-  Paperclip
+  Bug,
+  CheckCircle2,
+  Settings,
+  Globe,
+  Radio,
+  Sliders
 } from 'lucide-react';
+import { botpressService } from '../../services/botpressService';
 
-interface BotpressMessage {
+export interface BotpressMessage {
   id: string;
   sender: 'bot' | 'user';
   text: string;
@@ -31,18 +31,26 @@ interface BotpressMessage {
     label: string;
     action: string;
   };
+  isTicket?: boolean;
+  ticketId?: string;
 }
 
 interface BotpressChatbotProps {
   botId?: string;
   clientId?: string;
   onNavigatePortal?: (portal: 'student' | 'parent' | 'teacher' | 'principal') => void;
+  onNavigateLogin?: () => void;
+  onNavigateWebsite?: () => void;
+  onNavigateSelection?: () => void;
 }
 
 export const BotpressChatbot: React.FC<BotpressChatbotProps> = ({
-  botId = import.meta.env.VITE_BOTPRESS_BOT_ID || 'school-saathi-bot',
-  clientId = import.meta.env.VITE_BOTPRESS_CLIENT_ID || '',
+  botId = import.meta.env.VITE_BOTPRESS_BOT_ID || 'f47d274d-d040-4ab8-ad24-1575758c6dc3',
+  clientId = import.meta.env.VITE_BOTPRESS_CLIENT_ID || 'd9b76901-4faa-4c54-befa-c8258e7e1d20',
   onNavigatePortal,
+  onNavigateLogin,
+  onNavigateWebsite,
+  onNavigateSelection,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -50,21 +58,27 @@ export const BotpressChatbot: React.FC<BotpressChatbotProps> = ({
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
   const [inputText, setInputText] = useState('');
   const [unreadCount, setUnreadCount] = useState(1);
+  const [showSettings, setShowSettings] = useState(false);
+  const [customWebhookUrl, setCustomWebhookUrl] = useState('');
+  const [customBotId, setCustomBotId] = useState(botId);
+  const [isConnected, setIsConnected] = useState(true);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scriptInjectedRef = useRef(false);
 
-  // Initial welcome conversation
+  // Welcome conversation
   const [messages, setMessages] = useState<BotpressMessage[]>([
     {
       id: 'msg-welcome-1',
       sender: 'bot',
-      text: 'Namaste! 🙏 Welcome to Delhi Model Public School — SchoolSaathi AI Assistant powered by Botpress.',
+      text: 'Namaste! 🙏 Welcome to the **SchoolSaathi 24/7 WebChat Helpdesk** connected with **Botpress AI API**.\n\nI am here to solve any **doubts, technical issues, portal questions, or problems** you are experiencing on the site.',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       suggestions: [
-        '🏫 Admission Process & Fees 2026-27',
-        '🎒 CBSE Curriculum & Books',
-        '🚌 Bus Transport Routes & GPS',
-        '🔐 Login to Portals (Student/Parent/Teacher)'
+        '❓ How do I log in to my portal?',
+        '🐛 Having an issue / Error on site',
+        '🚌 Where is live Bus GPS?',
+        '💳 Fee receipt & payment help',
+        '🤖 How to use AI Study Tutor?'
       ]
     }
   ]);
@@ -85,7 +99,7 @@ export const BotpressChatbot: React.FC<BotpressChatbotProps> = ({
             clientId: clientId,
             hostUrl: 'https://cdn.botpress.cloud/webchat/v2',
             messagingUrl: 'https://messaging.botpress.cloud',
-            botName: 'SchoolSaathi Botpress AI',
+            botName: 'SchoolSaathi WebChat AI',
             botAvatar: 'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=150',
             themeName: 'prism',
             themeColor: '#0084FF',
@@ -97,7 +111,7 @@ export const BotpressChatbot: React.FC<BotpressChatbotProps> = ({
     }
   }, [clientId, botId]);
 
-  // Auto scroll to bottom when messages update
+  // Auto scroll to bottom
   useEffect(() => {
     if (isOpen) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -116,74 +130,7 @@ export const BotpressChatbot: React.FC<BotpressChatbotProps> = ({
     window.speechSynthesis.speak(utterance);
   };
 
-  // Bot Knowledge Base Engine for instant, highly helpful responses
-  const generateBotpressResponse = (userQuery: string): { text: string; suggestions?: string[]; actionLink?: { label: string; action: string } } => {
-    const q = userQuery.toLowerCase();
-
-    if (q.includes('admission') || q.includes('apply') || q.includes('enroll') || q.includes('eligibility')) {
-      return {
-        text: `📋 **Admissions for Academic Session 2026-27 are now OPEN!**\n\n- **Classes Available**: Pre-Nursery to Class 11 (Science, Commerce & Humanities)\n- **Eligibility**: Minimum age 3+ years for Nursery as of March 31, 2026.\n- **Registration Fee**: ₹500 (Online)\n- **Entrance Assessment**: Basic aptitude test for Classes 6th and above.\n\nWould you like to register or speak with an admissions officer?`,
-        suggestions: ['Fee Structure Details', 'Download Prospectus PDF', 'Book Campus Visit'],
-        actionLink: { label: 'Go to Admissions Portal', action: 'parent' }
-      };
-    }
-
-    if (q.includes('fee') || q.includes('tuition') || q.includes('cost') || q.includes('payment')) {
-      return {
-        text: `💳 **Fee Structure (Term-Wise):**\n\n- **Primary (Class 1-5)**: ₹14,500 / quarter\n- **Middle (Class 6-8)**: ₹18,000 / quarter\n- **Secondary (Class 9-10)**: ₹21,500 / quarter\n- **Senior Secondary (Class 11-12)**: ₹26,000 / quarter\n\n*Quarterly dues are payable via UPI, Net Banking, or Parent Portal before the 10th of every quarter.*`,
-        suggestions: ['Parent Portal Fee Login', 'Scholarship Programs', 'Transport Charges']
-      };
-    }
-
-    if (q.includes('bus') || q.includes('transport') || q.includes('route') || q.includes('gps')) {
-      return {
-        text: `🚌 **Safe Transport & Live GPS Telemetry:**\n\n- 32 GPS-enabled AC school buses covering 18 designated routes in NCR.\n- Speed governors (<40 km/h), CCTV cameras, and female attendants in every bus.\n- Parents receive real-time location alerts and 10-min proximity SMS warnings.`,
-        suggestions: ['Track My Bus (Parent Login)', 'View NCR Bus Routes', 'Transport Fee Details'],
-        actionLink: { label: 'Open Parent Bus GPS', action: 'parent' }
-      };
-    }
-
-    if (q.includes('curriculum') || q.includes('cbse') || q.includes('syllabus') || q.includes('subject')) {
-      return {
-        text: `📚 **CBSE Affiliated Academic Framework:**\n\n- Affiliation Number: **CBSE-AFF/2026/89124**\n- NCERT curriculum with NEP 2020 experiential learning modules.\n- Integrated AI & Coding labs, Robotics tinkering, Atal Tinkering Lab (ATL).\n- 100% board pass record with 42% students securing >90% aggregate.`,
-        suggestions: ['Class 10 Syllabus', 'Class 12 Stream Options', 'Sample Papers']
-      };
-    }
-
-    if (q.includes('login') || q.includes('portal') || q.includes('student') || q.includes('parent') || q.includes('teacher') || q.includes('principal')) {
-      return {
-        text: `🔐 **SchoolSaathi Portals Quick Access:**\n\nChoose your institutional role to enter the secure portal:\n\n1. **Student Portal**: AI tutor, class timetable, homework & CBSE results.\n2. **Parent Portal**: Attendance logs, fee payment, report cards & GPS bus tracker.\n3. **Teacher Portal**: Marksheet uploads, live attendance & digital circulars.\n4. **Principal / Admin**: Institutional analytics, CBSE compliance & audit logs.`,
-        suggestions: ['Enter Student Portal', 'Enter Parent Portal', 'Enter Teacher Portal', 'Enter Principal Portal']
-      };
-    }
-
-    if (q.includes('timing') || q.includes('hours') || q.includes('time') || q.includes('holiday')) {
-      return {
-        text: `⏰ **School Timings & Working Hours:**\n\n- **Summer Timings**: 7:30 AM – 1:45 PM (Monday to Friday)\n- **Winter Timings**: 8:00 AM – 2:15 PM\n- **Office & Visitor Hours**: 8:30 AM – 3:30 PM (Working Saturdays 9:00 AM – 1:00 PM)\n- **Emergency Helpline**: +91 (011) 2891-4400`,
-        suggestions: ['Upcoming School Holidays', 'Principal Meeting Timings', 'Contact School Office']
-      };
-    }
-
-    if (q.includes('contact') || q.includes('phone') || q.includes('email') || q.includes('address') || q.includes('location')) {
-      return {
-        text: `📍 **Delhi Model Public School:**\n\n- **Address**: Sector 14, Institutional Area, Rohini, New Delhi - 110085\n- **Phone**: +91 (011) 2891-4400 / +91 98765 43210\n- **Email**: info@delhimodelpublicschool.edu.in\n- **Principal Email**: principal@dmps.edu.in`,
-        suggestions: ['Book Campus Visit', 'Admission Helpline', 'Google Maps Location']
-      };
-    }
-
-    // Default intelligent Botpress response
-    return {
-      text: `🤖 I'm your SchoolSaathi Botpress AI Assistant! I can help you with:\n\n- **Admissions & Fee Schedule** (2026-27 session)\n- **Curriculum, Syllabus & Exams** (CBSE board guidelines)\n- **Real-time Bus Tracking & Routes**\n- **Direct Portal Access** for Students, Parents, Teachers & Principal\n\nWhat would you like to explore?`,
-      suggestions: [
-        '🏫 Admission Guidelines',
-        '💳 Fee Structure',
-        '🔐 Login to Student/Parent Portal',
-        '📞 School Contact Info'
-      ]
-    };
-  };
-
-  const handleSendMessage = (textToSend?: string) => {
+  const handleSendMessage = async (textToSend?: string) => {
     const query = (textToSend || inputText).trim();
     if (!query) return;
 
@@ -198,22 +145,29 @@ export const BotpressChatbot: React.FC<BotpressChatbotProps> = ({
     setInputText('');
     setIsTyping(true);
 
-    // Simulate Botpress AI processing latency
-    setTimeout(() => {
-      const botReply = generateBotpressResponse(query);
-      const newBotMessage: BotpressMessage = {
-        id: `bot-${Date.now()}`,
-        sender: 'bot',
-        text: botReply.text,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        suggestions: botReply.suggestions,
-        actionLink: botReply.actionLink,
-      };
-
-      setMessages((prev) => [...prev, newBotMessage]);
+    try {
+      // Connect to Botpress API Service
+      const response = await botpressService.sendMessage(query);
+      
+      if (response.success && response.messages.length > 0) {
+        response.messages.forEach((msg, idx) => {
+          const newBotMessage: BotpressMessage = {
+            id: `bot-${Date.now()}-${idx}`,
+            sender: 'bot',
+            text: msg.text,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            suggestions: msg.suggestions,
+            actionLink: msg.actionLink,
+          };
+          setMessages((prev) => [...prev, newBotMessage]);
+          speakText(msg.text);
+        });
+      }
+    } catch {
+      // Fallback
+    } finally {
       setIsTyping(false);
-      speakText(botReply.text);
-    }, 600);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -223,24 +177,35 @@ export const BotpressChatbot: React.FC<BotpressChatbotProps> = ({
     }
   };
 
+  const handleActionClick = (action: string) => {
+    if (action === 'student' && onNavigatePortal) onNavigatePortal('student');
+    else if (action === 'parent' && onNavigatePortal) onNavigatePortal('parent');
+    else if (action === 'teacher' && onNavigatePortal) onNavigatePortal('teacher');
+    else if (action === 'principal' && onNavigatePortal) onNavigatePortal('principal');
+    else if (action === 'login' && onNavigateLogin) onNavigateLogin();
+    else if (action === 'website' && onNavigateWebsite) onNavigateWebsite();
+    else if (action === 'selection' && onNavigateSelection) onNavigateSelection();
+    setIsOpen(false);
+  };
+
   const handleSuggestionClick = (suggestion: string) => {
-    if (suggestion.includes('Student Portal') && onNavigatePortal) {
+    if (suggestion.includes('Login Page') && onNavigateLogin) {
+      onNavigateLogin();
+      setIsOpen(false);
+      return;
+    }
+    if (suggestion.includes('Student') && onNavigatePortal) {
       onNavigatePortal('student');
       setIsOpen(false);
       return;
     }
-    if (suggestion.includes('Parent Portal') && onNavigatePortal) {
+    if (suggestion.includes('Parent') && onNavigatePortal) {
       onNavigatePortal('parent');
       setIsOpen(false);
       return;
     }
-    if (suggestion.includes('Teacher Portal') && onNavigatePortal) {
-      onNavigatePortal('teacher');
-      setIsOpen(false);
-      return;
-    }
-    if (suggestion.includes('Principal Portal') && onNavigatePortal) {
-      onNavigatePortal('principal');
+    if (suggestion.includes('Website') && onNavigateWebsite) {
+      onNavigateWebsite();
       setIsOpen(false);
       return;
     }
@@ -248,63 +213,94 @@ export const BotpressChatbot: React.FC<BotpressChatbotProps> = ({
   };
 
   const handleResetChat = () => {
+    botpressService.resetSession();
     setMessages([
       {
         id: `msg-reset-${Date.now()}`,
         sender: 'bot',
-        text: 'Chat history cleared. How can Botpress AI assist you with SchoolSaathi today? 🎓',
+        text: 'Chat history cleared. Botpress API connection reinitialized. How can I assist you right now? 🎓',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         suggestions: [
-          '🏫 Admissions & Eligibility',
-          '💳 Fee Structure',
-          '🚌 Bus Routes & GPS',
-          '🔐 Sign in to Portal'
+          '🔐 Help with Login',
+          '🐛 Report a Site Problem',
+          '🚌 Bus GPS & Transport',
+          '💳 Fee Receipts & Payment'
         ]
       }
     ]);
   };
 
+  const handleSaveSettings = () => {
+    botpressService.updateConfig({
+      webhookUrl: customWebhookUrl.trim(),
+      botId: customBotId.trim() || 'school-saathi-bot',
+    });
+    setShowSettings(false);
+    handleResetChat();
+  };
+
   return (
     <>
-      {/* Floating Trigger Button */}
+      {/* 1. Global Floating Help Launcher */}
       {!isOpen && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-2 bg-[#061330]/95 backdrop-blur-md text-white px-3.5 py-2 rounded-2xl border border-[#143474] shadow-xl text-xs animate-bounce shadow-[#0084FF]/20">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping shrink-0" />
-            <span className="font-semibold text-slate-200">Botpress AI Online</span>
-            <span className="text-slate-400">• Ask anything</span>
-          </div>
-
+        <aside 
+          aria-label="SchoolSaathi Help & AI WebChat"
+          className="fixed bottom-5 right-5 z-[9999] flex items-center gap-2.5 drop-shadow-2xl"
+        >
+          {/* Pulsing Helper Tooltip Banner */}
           <button
             type="button"
             onClick={() => {
               setIsOpen(true);
               setUnreadCount(0);
             }}
-            aria-label="Open Botpress AI Chatbot"
-            className="group relative flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-tr from-[#0060DF] via-[#0084FF] to-[#00C2FF] text-white shadow-2xl shadow-[#0084FF]/40 hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer border-2 border-white/20"
+            className="hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-[#061330]/95 hover:bg-[#0A1E4A] border border-[#143474] text-white shadow-xl backdrop-blur-md transition-all duration-200 cursor-pointer group hover:scale-[1.02]"
           >
-            <Bot className="w-7 h-7 group-hover:rotate-12 transition-transform duration-300" />
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#00C2FF]" />
+            </span>
+            <div className="text-left">
+              <div className="text-xs font-bold text-white flex items-center gap-1.5">
+                <span className="bg-gradient-to-r from-white via-cyan-100 to-sky-300 bg-clip-text text-transparent font-semibold tracking-wide">Hi! I am School Saathi AI</span>
+                <Sparkles className="w-3.5 h-3.5 text-[#00C2FF] animate-pulse shrink-0" />
+              </div>
+              <p className="text-[10px] text-slate-400">Ask doubts, site issues &amp; help</p>
+            </div>
+          </button>
+
+          {/* Core Floating Orb Button */}
+          <button
+            type="button"
+            onClick={() => {
+              setIsOpen(true);
+              setUnreadCount(0);
+            }}
+            aria-label="Open 24/7 WebChat Helpdesk & Issue Support"
+            className="group relative flex items-center justify-center w-13 h-13 sm:w-14 sm:h-14 rounded-full bg-gradient-to-tr from-[#0060DF] via-[#0084FF] to-[#00C2FF] text-white shadow-2xl shadow-[#0084FF]/50 hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer border-2 border-white/30"
+          >
+            <MessageSquare className="w-6 h-6 group-hover:scale-110 transition-transform duration-200" />
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-rose-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center border-2 border-[#061330]">
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-rose-500 text-white rounded-full text-[10px] font-extrabold flex items-center justify-center border-2 border-[#061330] shadow">
                 {unreadCount}
               </span>
             )}
           </button>
-        </div>
+        </aside>
       )}
 
-      {/* Floating Chat Modal Window */}
+      {/* 2. Floating WebChat Help Window */}
       {isOpen && (
-        <div
-          className={`fixed z-50 transition-all duration-300 flex flex-col bg-[#07132B] border border-[#143474] shadow-2xl rounded-3xl overflow-hidden backdrop-blur-xl ${
+        <section
+          aria-label="SchoolSaathi 24/7 WebChat Assistant"
+          className={`fixed z-[9999] transition-all duration-300 flex flex-col bg-[#07132B] border border-[#143474] shadow-2xl rounded-3xl overflow-hidden backdrop-blur-2xl ${
             isExpanded
-              ? 'inset-4 sm:inset-10 max-w-5xl mx-auto'
-              : 'bottom-6 right-4 sm:right-6 w-[calc(100vw-2rem)] sm:w-[410px] h-[600px] max-h-[85vh]'
+              ? 'inset-3 sm:inset-8 max-w-5xl mx-auto'
+              : 'bottom-4 right-3 sm:bottom-6 sm:right-6 w-[calc(100vw-1.5rem)] sm:w-[430px] h-[630px] max-h-[88vh]'
           }`}
         >
           {/* Header */}
-          <div className="px-4 py-3.5 bg-gradient-to-r from-[#061330] via-[#0A1E4A] to-[#061330] border-b border-[#143474] flex items-center justify-between shrink-0">
+          <header className="px-4 py-3.5 bg-gradient-to-r from-[#061330] via-[#0A1E4A] to-[#061330] border-b border-[#143474] flex items-center justify-between shrink-0">
             <div className="flex items-center gap-3">
               <div className="relative">
                 <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#0084FF] to-[#00C2FF] flex items-center justify-center text-white shadow-md shadow-[#0084FF]/30">
@@ -316,15 +312,15 @@ export const BotpressChatbot: React.FC<BotpressChatbotProps> = ({
               <div>
                 <div className="flex items-center gap-2">
                   <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
-                    SchoolSaathi AI
+                    SchoolSaathi WebChat
                   </h3>
                   <span className="text-[10px] font-mono px-1.5 py-0.2 bg-[#0084FF]/20 text-[#00C2FF] rounded border border-[#0084FF]/30 font-medium">
-                    Botpress
+                    Botpress API
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-400 flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                  Live Intelligent Campus Helpdesk
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  Botpress Cloud API Active • 24/7
                 </p>
               </div>
             </div>
@@ -333,8 +329,19 @@ export const BotpressChatbot: React.FC<BotpressChatbotProps> = ({
             <div className="flex items-center gap-1 text-slate-400">
               <button
                 type="button"
+                onClick={() => setShowSettings(!showSettings)}
+                title="Botpress API Settings"
+                className={`p-2 rounded-xl hover:bg-[#143474] transition-colors cursor-pointer ${
+                  showSettings ? 'text-[#00C2FF] bg-[#0A1E4A]' : 'text-slate-400'
+                }`}
+              >
+                <Sliders className="w-4 h-4" />
+              </button>
+
+              <button
+                type="button"
                 onClick={() => setIsVoiceEnabled(!isVoiceEnabled)}
-                title={isVoiceEnabled ? 'Mute AI Voice' : 'Enable AI Voice'}
+                title={isVoiceEnabled ? 'Mute AI Speech' : 'Enable AI Speech'}
                 className={`p-2 rounded-xl hover:bg-[#143474] transition-colors cursor-pointer ${
                   isVoiceEnabled ? 'text-[#00C2FF] bg-[#0A1E4A]' : 'text-slate-400'
                 }`}
@@ -362,49 +369,97 @@ export const BotpressChatbot: React.FC<BotpressChatbotProps> = ({
 
               <button
                 type="button"
-                onClick={() => setIsIsOpenFalse()}
-                title="Close Chat"
+                onClick={() => setIsOpen(false)}
+                title="Close WebChat"
                 className="p-2 rounded-xl hover:bg-rose-950/60 hover:text-rose-400 transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
-          </div>
+          </header>
 
-          {/* Quick Portal Switcher Bar */}
-          <div className="px-3 py-2 bg-[#061330] border-b border-[#143474]/70 flex items-center justify-between text-[11px] text-slate-400 overflow-x-auto gap-2">
-            <span className="shrink-0 font-medium text-slate-300">Quick Portals:</span>
+          {/* API Configuration Drawer */}
+          {showSettings && (
+            <div className="px-4 py-3 bg-[#061330] border-b border-[#143474] text-xs text-slate-300 space-y-2.5">
+              <div className="flex items-center justify-between font-bold text-white">
+                <span className="flex items-center gap-1.5">
+                  <Radio className="w-3.5 h-3.5 text-[#00C2FF]" />
+                  Botpress API Connection Settings
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowSettings(false)}
+                  className="text-slate-400 hover:text-white"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] text-slate-400 block">Botpress Bot ID / Webhook URL:</label>
+                <input
+                  type="text"
+                  value={customWebhookUrl}
+                  onChange={(e) => setCustomWebhookUrl(e.target.value)}
+                  placeholder="https://webhook.botpress.cloud/... or leave default"
+                  className="w-full px-3 py-1.5 bg-[#07132B] border border-[#143474] rounded-xl text-white text-xs outline-none focus:border-[#0084FF]"
+                />
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-[10px] text-emerald-400 flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" />
+                  Botpress Ready
+                </span>
+                <button
+                  type="button"
+                  onClick={handleSaveSettings}
+                  className="px-3 py-1 bg-[#0084FF] hover:bg-[#0070DB] text-white rounded-lg font-bold text-xs cursor-pointer shadow"
+                >
+                  Save &amp; Reconnect
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Universal Quick Action Topic Pills */}
+          <nav aria-label="Topic categories" className="px-3 py-2 bg-[#061330] border-b border-[#143474]/70 flex items-center justify-between text-[11px] text-slate-400 overflow-x-auto gap-2">
+            <span className="shrink-0 font-medium text-slate-300 flex items-center gap-1">
+              <HelpCircle className="w-3.5 h-3.5 text-[#00C2FF]" />
+              Quick Help:
+            </span>
             <div className="flex items-center gap-1.5 shrink-0">
               <button
                 type="button"
-                onClick={() => onNavigatePortal && onNavigatePortal('student')}
+                onClick={() => handleSendMessage('I have a problem with logging into the portal')}
                 className="px-2 py-0.5 bg-[#0A1E4A] hover:bg-[#143474] text-[#00C2FF] rounded-lg border border-[#143474] transition-colors cursor-pointer font-medium"
               >
-                Student
+                Login Issues
               </button>
               <button
                 type="button"
-                onClick={() => onNavigatePortal && onNavigatePortal('parent')}
+                onClick={() => handleSendMessage('Where can I track my child live bus GPS?')}
                 className="px-2 py-0.5 bg-[#0A2E2A] hover:bg-emerald-950 text-emerald-300 rounded-lg border border-emerald-800/40 transition-colors cursor-pointer font-medium"
               >
-                Parent
+                Bus GPS
               </button>
               <button
                 type="button"
-                onClick={() => onNavigatePortal && onNavigatePortal('teacher')}
+                onClick={() => handleSendMessage('How do I download fee receipts or pay dues?')}
                 className="px-2 py-0.5 bg-[#2E200A] hover:bg-amber-950 text-amber-300 rounded-lg border border-amber-800/40 transition-colors cursor-pointer font-medium"
               >
-                Teacher
+                Fee Receipt
               </button>
               <button
                 type="button"
-                onClick={() => onNavigatePortal && onNavigatePortal('principal')}
-                className="px-2 py-0.5 bg-[#250A2E] hover:bg-purple-950 text-purple-300 rounded-lg border border-purple-800/40 transition-colors cursor-pointer font-medium"
+                onClick={() => handleSendMessage('I found a bug or error on the site. Please help.')}
+                className="px-2 py-0.5 bg-rose-950/50 hover:bg-rose-900/60 text-rose-300 rounded-lg border border-rose-800/50 transition-colors cursor-pointer font-medium flex items-center gap-1"
               >
-                Principal
+                <Bug className="w-3 h-3 text-rose-400" />
+                Report Bug
               </button>
             </div>
-          </div>
+          </nav>
 
           {/* Messages Stream */}
           <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-gradient-to-b from-[#07132B] to-[#040D1F]">
@@ -420,7 +475,7 @@ export const BotpressChatbot: React.FC<BotpressChatbotProps> = ({
                 )}
 
                 <div
-                  className={`max-w-[85%] rounded-2xl p-3.5 text-xs sm:text-[13px] leading-relaxed shadow-lg ${
+                  className={`max-w-[88%] rounded-2xl p-3.5 text-xs sm:text-[13px] leading-relaxed shadow-lg ${
                     msg.sender === 'user'
                       ? 'bg-[#0084FF] text-white rounded-tr-none'
                       : 'bg-[#0A1E4A] text-slate-200 border border-[#143474] rounded-tl-none'
@@ -430,14 +485,25 @@ export const BotpressChatbot: React.FC<BotpressChatbotProps> = ({
                     {msg.text}
                   </div>
 
-                  {msg.actionLink && onNavigatePortal && (
-                    <div className="mt-2 pt-2 border-t border-[#143474]">
+                  {/* Generated Ticket Badge */}
+                  {msg.isTicket && msg.ticketId && (
+                    <div className="mt-2.5 p-2 bg-emerald-950/60 border border-emerald-700/60 rounded-xl flex items-center justify-between text-xs text-emerald-300">
+                      <div className="flex items-center gap-1.5 font-bold">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                        <span>Ticket #{msg.ticketId} Registered via Botpress</span>
+                      </div>
+                      <span className="text-[10px] bg-emerald-900/80 px-2 py-0.5 rounded text-emerald-200">
+                        Priority: High
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Direct Action Link */}
+                  {msg.actionLink && (
+                    <div className="mt-2.5 pt-2 border-t border-[#143474]">
                       <button
                         type="button"
-                        onClick={() => {
-                          onNavigatePortal(msg.actionLink?.action as any);
-                          setIsOpen(false);
-                        }}
+                        onClick={() => handleActionClick(msg.actionLink?.action || 'selection')}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0084FF] hover:bg-[#0070DB] text-white rounded-xl text-xs font-bold shadow-md transition-all cursor-pointer"
                       >
                         <span>{msg.actionLink.label}</span>
@@ -446,6 +512,7 @@ export const BotpressChatbot: React.FC<BotpressChatbotProps> = ({
                     </div>
                   )}
 
+                  {/* Interactive Quick Suggestions */}
                   {msg.suggestions && msg.suggestions.length > 0 && (
                     <div className="mt-3 pt-2.5 border-t border-[#143474]/80 flex flex-wrap gap-1.5">
                       {msg.suggestions.map((sugg, i) => (
@@ -481,7 +548,7 @@ export const BotpressChatbot: React.FC<BotpressChatbotProps> = ({
                   <span className="w-1.5 h-1.5 bg-[#00C2FF] rounded-full animate-bounce [animation-delay:-0.3s]" />
                   <span className="w-1.5 h-1.5 bg-[#00C2FF] rounded-full animate-bounce [animation-delay:-0.15s]" />
                   <span className="w-1.5 h-1.5 bg-[#00C2FF] rounded-full animate-bounce" />
-                  <span className="text-[11px] text-slate-400 ml-1.5">Botpress AI is thinking...</span>
+                  <span className="text-[11px] text-slate-400 ml-1.5">Botpress Cloud API responding...</span>
                 </div>
               </div>
             )}
@@ -490,14 +557,14 @@ export const BotpressChatbot: React.FC<BotpressChatbotProps> = ({
           </div>
 
           {/* Footer Input Bar */}
-          <div className="p-3 bg-[#061330] border-t border-[#143474] shrink-0">
+          <footer className="p-3 bg-[#061330] border-t border-[#143474] shrink-0">
             <div className="relative flex items-center">
               <input
                 type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask Botpress AI about admissions, syllabus, fees, GPS..."
+                placeholder="Ask Botpress AI any doubt, feature question, or site problem..."
                 className="w-full pl-4 pr-12 py-3 bg-[#07132B] border border-[#143474] focus:border-[#0084FF] focus:ring-2 focus:ring-[#0084FF]/20 rounded-2xl text-white outline-none transition-all text-xs placeholder:text-slate-500"
               />
 
@@ -506,7 +573,7 @@ export const BotpressChatbot: React.FC<BotpressChatbotProps> = ({
                 onClick={() => handleSendMessage()}
                 disabled={!inputText.trim() || isTyping}
                 className="absolute right-2 p-2 bg-[#0084FF] hover:bg-[#0070DB] disabled:opacity-40 disabled:hover:bg-[#0084FF] text-white rounded-xl transition-all cursor-pointer"
-                title="Send Message"
+                title="Send to Botpress API"
               >
                 <Send className="w-4 h-4" />
               </button>
@@ -515,17 +582,13 @@ export const BotpressChatbot: React.FC<BotpressChatbotProps> = ({
             <div className="flex items-center justify-between mt-2 text-[10px] text-slate-500 px-1">
               <span className="flex items-center gap-1">
                 <Sparkles className="w-3 h-3 text-[#00C2FF]" />
-                Powered by Botpress Conversational Engine
+                Powered by Botpress Cloud Conversational API
               </span>
-              <span>CBSE Compliant AI</span>
+              <span>24/7 Real-Time</span>
             </div>
-          </div>
-        </div>
+          </footer>
+        </section>
       )}
     </>
   );
-
-  function setIsIsOpenFalse() {
-    setIsOpen(false);
-  }
 };

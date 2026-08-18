@@ -11,6 +11,7 @@ import { ParentPortal } from './pages/parent/ParentPortal';
 import { TeacherPortal } from './pages/teacher/TeacherPortal';
 import { ManagementPortal } from './pages/management/ManagementPortal';
 import { SplashScreen } from './components/splash/SplashScreen';
+import { BotpressChatbot } from './components/chat/BotpressChatbot';
 import { UserRole } from './types';
 
 const AppContent: React.FC = () => {
@@ -31,6 +32,24 @@ const AppContent: React.FC = () => {
     }
   }, [isAuthenticated, user, viewMode]);
 
+  const handleNavigatePortal = (sector: 'student' | 'parent' | 'teacher' | 'principal') => {
+    switchDemoRole(sector as UserRole);
+    setViewMode('portal');
+    setActiveTab('dashboard');
+  };
+
+  const handleNavigateLogin = () => {
+    setViewMode('login');
+  };
+
+  const handleNavigateWebsite = () => {
+    setViewMode('website');
+  };
+
+  const handleNavigateSelection = () => {
+    setViewMode('selection');
+  };
+
   // 1. Splash Screen Phase
   if (showSplash) {
     return <SplashScreen onComplete={() => setShowSplash(false)} />;
@@ -46,99 +65,114 @@ const AppContent: React.FC = () => {
     );
   }
 
-  // 3. School Saathi Institutional Website Landing Page
-  if (viewMode === 'website') {
-    return (
-      <SchoolSaathiWebsite
-        onOpenPortal={(sector) => {
-          if (sector) {
-            switchDemoRole(sector as UserRole);
-            setViewMode('portal');
-            setActiveTab('dashboard');
-          } else {
-            setViewMode('selection');
-          }
-        }}
-        onOpenLiveDemo={() => {
-          const el = document.getElementById('ai-assistant');
-          if (el) el.scrollIntoView({ behavior: 'smooth' });
-        }}
-      />
-    );
-  }
-
-  // 4. Portal Selection Screen (Choose Student, Parent, Teacher, Principal)
-  if (viewMode === 'selection') {
-    return (
-      <PortalSelectionPage
-        onSelectPortal={(role: UserRole) => {
-          setViewMode('portal');
-          setActiveTab('dashboard');
-        }}
-        onOpenCredentialLogin={(sector: LoginSector) => {
-          setSelectedLoginSector(sector);
-          setViewMode('login');
-        }}
-        onBackToWebsite={() => setViewMode('website')}
-      />
-    );
-  }
-
-  // 5. Specific Credential Login Page
-  if (viewMode === 'login' || !isAuthenticated || !user) {
-    return (
-      <LoginPage
-        initialSector={selectedLoginSector}
-        onBackToSelection={() => setViewMode('selection')}
-      />
-    );
-  }
-
-  // 6. Active Role-Isolated Portal Views
-  const renderPortalView = () => {
-    switch (user.role) {
-      case 'student':
-        return <StudentPortal activeTab={activeTab} setActiveTab={setActiveTab} />;
-      case 'parent':
-        return <ParentPortal activeTab={activeTab} setActiveTab={setActiveTab} />;
-      case 'teacher':
-        return <TeacherPortal activeTab={activeTab} setActiveTab={setActiveTab} />;
-      case 'principal':
-        return <ManagementPortal activeTab={activeTab} setActiveTab={setActiveTab} />;
-      default:
-        return <StudentPortal activeTab={activeTab} setActiveTab={setActiveTab} />;
+  // Helper to render the active screen content
+  const renderCurrentView = () => {
+    // 3. School Saathi Institutional Website Landing Page
+    if (viewMode === 'website') {
+      return (
+        <SchoolSaathiWebsite
+          onOpenPortal={(sector) => {
+            if (sector) {
+              handleNavigatePortal(sector);
+            } else {
+              handleNavigateSelection();
+            }
+          }}
+          onOpenLiveDemo={() => {
+            const el = document.getElementById('ai-assistant');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+          }}
+        />
+      );
     }
+
+    // 4. Portal Selection Screen (Choose Student, Parent, Teacher, Principal)
+    if (viewMode === 'selection') {
+      return (
+        <PortalSelectionPage
+          onSelectPortal={(role: UserRole) => {
+            handleNavigatePortal(role);
+          }}
+          onOpenCredentialLogin={(sector: LoginSector) => {
+            setSelectedLoginSector(sector);
+            setViewMode('login');
+          }}
+          onBackToWebsite={handleNavigateWebsite}
+        />
+      );
+    }
+
+    // 5. Specific Credential Login Page
+    if (viewMode === 'login' || !isAuthenticated || !user) {
+      return (
+        <LoginPage
+          initialSector={selectedLoginSector}
+          onBackToSelection={handleNavigateSelection}
+        />
+      );
+    }
+
+    // 6. Active Role-Isolated Portal Views
+    const renderPortalView = () => {
+      switch (user.role) {
+        case 'student':
+          return <StudentPortal activeTab={activeTab} setActiveTab={setActiveTab} />;
+        case 'parent':
+          return <ParentPortal activeTab={activeTab} setActiveTab={setActiveTab} />;
+        case 'teacher':
+          return <TeacherPortal activeTab={activeTab} setActiveTab={setActiveTab} />;
+        case 'principal':
+          return <ManagementPortal activeTab={activeTab} setActiveTab={setActiveTab} />;
+        default:
+          return <StudentPortal activeTab={activeTab} setActiveTab={setActiveTab} />;
+      }
+    };
+
+    return (
+      <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col antialiased">
+        {/* Top Universal App Header */}
+        <Header
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          onToggleMobileSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+          onSwitchPortal={handleNavigateSelection}
+          onVisitWebsite={handleNavigateWebsite}
+        />
+
+        {/* Main Container Layout */}
+        <div className="flex-1 flex max-w-[1600px] w-full mx-auto">
+          {/* Left Role-Isolated Navigation Sidebar */}
+          <Sidebar
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            isMobileOpen={isMobileSidebarOpen}
+            setIsMobileOpen={setIsMobileSidebarOpen}
+            onSwitchPortal={handleNavigateSelection}
+            onVisitWebsite={handleNavigateWebsite}
+          />
+
+          {/* Content View Area */}
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-full overflow-x-hidden">
+            {renderPortalView()}
+          </main>
+        </div>
+      </div>
+    );
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col antialiased">
-      {/* Top Universal App Header */}
-      <Header
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        onToggleMobileSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
-        onSwitchPortal={() => setViewMode('selection')}
-        onVisitWebsite={() => setViewMode('website')}
+    <>
+      {/* Active Screen View */}
+      {renderCurrentView()}
+
+      {/* Global 24/7 WebChat Helpdesk Widget (Always present from start to end of site) */}
+      <BotpressChatbot
+        onNavigatePortal={handleNavigatePortal}
+        onNavigateLogin={handleNavigateLogin}
+        onNavigateWebsite={handleNavigateWebsite}
+        onNavigateSelection={handleNavigateSelection}
       />
-
-      {/* Main Container Layout */}
-      <div className="flex-1 flex max-w-[1600px] w-full mx-auto">
-        {/* Left Role-Isolated Navigation Sidebar */}
-        <Sidebar
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          isMobileOpen={isMobileSidebarOpen}
-          setIsMobileOpen={setIsMobileSidebarOpen}
-          onSwitchPortal={() => setViewMode('selection')}
-          onVisitWebsite={() => setViewMode('website')}
-        />
-
-        {/* Content View Area */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-full overflow-x-hidden">
-          {renderPortalView()}
-        </main>
-      </div>
-    </div>
+    </>
   );
 };
 

@@ -8,10 +8,10 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password?: string) => Promise<AuthResponse>;
-  loginStudent: (params: { studentName: string; admissionNo: string; rollNo: number | string }) => Promise<AuthResponse>;
-  loginParent: (params: { studentName: string; admissionNo: string; rollNo: number | string; parentPhone?: string }) => Promise<AuthResponse>;
-  loginTeacher: (params: { phone: string; password: string }) => Promise<AuthResponse>;
-  loginPrincipal: (params: { phone: string; password: string }) => Promise<AuthResponse>;
+  loginStudent: (params: { studentName: string; admissionNo: string; studentClass: string; mobile: string; rollNo?: number | string }) => Promise<AuthResponse>;
+  loginParent: (params: { studentName: string; admissionNo: string; studentClass: string; mobile: string; rollNo?: number | string }) => Promise<AuthResponse>;
+  loginTeacher: (params: { officialId: string; secretCode: string }) => Promise<AuthResponse>;
+  loginPrincipal: (params: { officialId: string; secretCode: string }) => Promise<AuthResponse>;
   loginFirstTime: (params: { mobile: string; otp: string; role: UserRole; name?: string; studentAdmissionNo?: string; agreedToTerms: boolean }) => Promise<AuthResponse>;
   requestOtp: (mobile: string) => Promise<{ success: boolean; message: string; demoOtp: string }>;
   logout: () => void;
@@ -42,7 +42,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const loginStudent = async (params: { studentName: string; admissionNo: string; rollNo: number | string }): Promise<AuthResponse> => {
+  const loginStudent = async (params: { studentName: string; admissionNo: string; studentClass: string; mobile: string; rollNo?: number | string }): Promise<AuthResponse> => {
     setIsLoading(true);
     try {
       const res = await authService.loginStudent(params);
@@ -52,7 +52,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const loginParent = async (params: { studentName: string; admissionNo: string; rollNo: number | string; parentPhone?: string }): Promise<AuthResponse> => {
+  const loginParent = async (params: { studentName: string; admissionNo: string; studentClass: string; mobile: string; rollNo?: number | string }): Promise<AuthResponse> => {
     setIsLoading(true);
     try {
       const res = await authService.loginParent(params);
@@ -62,7 +62,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const loginTeacher = async (params: { phone: string; password: string }): Promise<AuthResponse> => {
+  const loginTeacher = async (params: { officialId: string; secretCode: string }): Promise<AuthResponse> => {
     setIsLoading(true);
     try {
       const res = await authService.loginTeacher(params);
@@ -72,7 +72,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const loginPrincipal = async (params: { phone: string; password: string }): Promise<AuthResponse> => {
+  const loginPrincipal = async (params: { officialId: string; secretCode: string }): Promise<AuthResponse> => {
     setIsLoading(true);
     try {
       const res = await authService.loginPrincipal(params);

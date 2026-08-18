@@ -30,20 +30,55 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const { t } = useLanguage();
 
   const [inputMessage, setInputMessage] = useState('');
-  const [messages, setMessages] = useState<ChatMessage[]>(() => [
-    {
-      id: 'MSG-INIT',
-      sender: 'assistant',
-      content: `Welcome to the SchoolSaathi XYZ AI Gateway! I am connected to your school ERP data layer. How may I assist you with your attendance, academics, or classroom inquiries today?`,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      status: 'delivered',
-      suggestedActions: [
-        { label: 'Check My Attendance', actionId: 'check_attendance' },
-        { label: 'View Today\'s Schedule', actionId: 'view_schedule' },
-        { label: 'Talk to Class Teacher', actionId: 'talk_to_teacher' }
-      ]
+  const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    const role = user?.role || 'student';
+    const name = user?.name || 'Student';
+    
+    let welcomeContent = `Welcome to SchoolSaathi AI! How may I assist you today?`;
+    let initialSuggested: { label: string; actionId: string }[] = [];
+
+    if (role === 'student') {
+      welcomeContent = `👋 **Hello ${name}!** I am your **SchoolSaathi AI Companion**.\n\n🔒 **Privacy Guard Active**: I am securely authenticated to your personal academic records (Class 8-A, Roll #14).\n\n• You can ask about **your attendance**, **mid-term grades**, **class timetable**, or **homework**.\n• You can ask **academic study & technical questions** (formulas, physics laws, Python coding, science concepts).\n\n*Note: Under SchoolSaathi RBAC & DPDP Act, private records of other pupils and faculty payroll are restricted.*`;
+      initialSuggested = [
+        { label: 'What is my attendance percentage?', actionId: 'check_attendance' },
+        { label: 'Show my report card marks', actionId: 'view_grades' },
+        { label: 'What is today\'s homework?', actionId: 'view_homework' },
+        { label: 'Explain Newton\'s laws of motion', actionId: 'explain_science' }
+      ];
+    } else if (role === 'parent') {
+      welcomeContent = `👨‍👩‍👧 **Namaste ${name}!** Authenticated Parent Portal assistant active.\n\nYou can query verified attendance, homework, and fee receipts for your linked children: **Rahul Sharma (Class 8A)** and **Priya Sharma (Class 5B)**.`;
+      initialSuggested = [
+        { label: 'Check Rahul\'s attendance', actionId: 'check_attendance' },
+        { label: 'Check Priya\'s performance', actionId: 'view_grades' },
+        { label: 'Message Class Teacher', actionId: 'talk_to_teacher' }
+      ];
+    } else if (role === 'teacher') {
+      welcomeContent = `👨‍🏫 **Welcome ${name}!** Faculty AI Assistant connected to Class 8-A roster and lesson planning modules.`;
+      initialSuggested = [
+        { label: 'View Class 8-A Attendance', actionId: 'check_attendance' },
+        { label: 'Generate a Physics Quiz', actionId: 'quiz_gen' },
+        { label: 'Draft a Student Circular', actionId: 'circular_draft' }
+      ];
+    } else if (role === 'principal') {
+      welcomeContent = `🏛️ **Welcome Dr. Priya Sen!** Executive Administration AI connected to institutional analytics and board compliance.`;
+      initialSuggested = [
+        { label: 'Institutional Attendance Report', actionId: 'school_att' },
+        { label: 'Review Escalation Queue', actionId: 'escalations' },
+        { label: 'Board Compliance Status', actionId: 'compliance' }
+      ];
     }
-  ]);
+
+    return [
+      {
+        id: 'MSG-INIT',
+        sender: 'assistant',
+        content: welcomeContent,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        status: 'delivered',
+        suggestedActions: initialSuggested
+      }
+    ];
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [isVoiceActive, setIsVoiceActive] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);

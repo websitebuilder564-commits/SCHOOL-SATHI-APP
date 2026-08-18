@@ -9,7 +9,7 @@ interface SplashScreenProps {
 
 export const SplashScreen: React.FC<SplashScreenProps> = ({
   onComplete,
-  minDurationMs = 2600,
+  minDurationMs = 1800,
 }) => {
   const [progress, setProgress] = useState(0);
   const [statusText, setStatusText] = useState('Initializing SchoolSaathi AI Engine...');

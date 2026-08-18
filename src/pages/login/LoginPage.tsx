@@ -22,11 +22,14 @@ import {
   User as UserIcon,
   HelpCircle,
   ExternalLink,
-  Smartphone
+  Smartphone,
+  School,
+  BookOpen
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Logo } from '../../components/brand/Logo';
 import { TermsPolicyModal } from '../../components/legal/TermsPolicyModal';
+import { HCaptchaSecurityWidget } from '../../components/security/HCaptchaSecurityWidget';
 
 export type LoginSector = 'student' | 'parent' | 'teacher' | 'principal' | 'first-time';
 
@@ -46,7 +49,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     loginPrincipal, 
     loginFirstTime, 
     requestOtp, 
-    switchDemoRole,
     isLoading 
   } = useAuth();
   const { language, setLanguage, t, languageOptions } = useLanguage();
@@ -54,25 +56,27 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   // Active sector tab
   const [activeSector, setActiveSector] = useState<LoginSector>(initialSector);
 
-  // Student sector fields
+  // Student sector fields (Name + Admission No + Class + Registered Mobile)
   const [studentName, setStudentName] = useState('Rahul Sharma');
   const [studentAdmissionNo, setStudentAdmissionNo] = useState('ADM-2022-801');
-  const [studentRollNo, setStudentRollNo] = useState('14');
+  const [studentClass, setStudentClass] = useState('Class 8-A');
+  const [studentMobile, setStudentMobile] = useState('9876543210');
 
-  // Parent sector fields
+  // Parent sector fields (Child Name + Child Admission No + Child Class + Registered Parent Mobile)
   const [parentChildName, setParentChildName] = useState('Rahul Sharma');
   const [parentChildAdmissionNo, setParentChildAdmissionNo] = useState('ADM-2022-801');
-  const [parentChildRollNo, setParentChildRollNo] = useState('14');
+  const [parentChildClass, setParentChildClass] = useState('Class 8-A');
+  const [parentMobile, setParentMobile] = useState('9876543211');
 
-  // Teacher sector fields
-  const [teacherPhone, setTeacherPhone] = useState('9876543212');
-  const [teacherPassword, setTeacherPassword] = useState('teacher123');
-  const [showTeacherPassword, setShowTeacherPassword] = useState(false);
+  // Teacher sector fields (School Official ID + Secret Code: cbse 2026)
+  const [teacherOfficialId, setTeacherOfficialId] = useState('teacher@dmps.edu.in');
+  const [teacherSecretCode, setTeacherSecretCode] = useState('cbse 2026');
+  const [showTeacherSecret, setShowTeacherSecret] = useState(false);
 
-  // Principal sector fields
-  const [principalPhone, setPrincipalPhone] = useState('9876543213');
-  const [principalPassword, setPrincipalPassword] = useState('principal123');
-  const [showPrincipalPassword, setShowPrincipalPassword] = useState(false);
+  // Principal sector fields (School Official ID + Secret Code: cbse 2026)
+  const [principalOfficialId, setPrincipalOfficialId] = useState('principal@dmps.edu.in');
+  const [principalSecretCode, setPrincipalSecretCode] = useState('cbse 2026');
+  const [showPrincipalSecret, setShowPrincipalSecret] = useState(false);
 
   // First-Time Registration / OTP fields
   const [ftRole, setFtRole] = useState<UserRole>('student');
@@ -83,8 +87,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   const [otpSentMessage, setOtpSentMessage] = useState<string | null>(null);
   const [isSendingOtp, setIsSendingOtp] = useState(false);
 
-  // Global error message & modals
+  // Global error message, captcha & modals
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
 
@@ -95,7 +100,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     const res = await loginStudent({
       studentName,
       admissionNo: studentAdmissionNo,
-      rollNo: studentRollNo,
+      studentClass,
+      mobile: studentMobile,
     });
     if (!res.success && res.error) {
       setErrorMessage(res.error.message);
@@ -109,7 +115,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     const res = await loginParent({
       studentName: parentChildName,
       admissionNo: parentChildAdmissionNo,
-      rollNo: parentChildRollNo,
+      studentClass: parentChildClass,
+      mobile: parentMobile,
     });
     if (!res.success && res.error) {
       setErrorMessage(res.error.message);
@@ -121,8 +128,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     e.preventDefault();
     setErrorMessage(null);
     const res = await loginTeacher({
-      phone: teacherPhone,
-      password: teacherPassword,
+      officialId: teacherOfficialId,
+      secretCode: teacherSecretCode,
     });
     if (!res.success && res.error) {
       setErrorMessage(res.error.message);
@@ -134,8 +141,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     e.preventDefault();
     setErrorMessage(null);
     const res = await loginPrincipal({
-      phone: principalPhone,
-      password: principalPassword,
+      officialId: principalOfficialId,
+      secretCode: principalSecretCode,
     });
     if (!res.success && res.error) {
       setErrorMessage(res.error.message);
@@ -178,6 +185,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       otp: ftOtp,
       role: ftRole,
       name: ftName,
+      studentAdmissionNo: studentAdmissionNo,
       agreedToTerms: ftAgreed,
     });
 
@@ -196,35 +204,35 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     {
       id: 'student',
       title: 'Student Login',
-      subtitle: 'Name, Admission & Roll No',
+      subtitle: 'Name, Admission, Class & Mobile',
       icon: <GraduationCap className="w-4 h-4" />,
       badgeColor: 'bg-[#0084FF] text-white',
     },
     {
       id: 'parent',
       title: 'Parent Login',
-      subtitle: 'Child Records & Telemetry',
+      subtitle: 'Ward Details & Mobile',
       icon: <Users className="w-4 h-4" />,
       badgeColor: 'bg-emerald-600 text-white',
     },
     {
       id: 'teacher',
       title: 'Teacher Login',
-      subtitle: 'Phone & Password',
+      subtitle: 'Official ID & Secret Code',
       icon: <UserCheck className="w-4 h-4" />,
       badgeColor: 'bg-amber-600 text-white',
     },
     {
       id: 'principal',
       title: 'Principal / Admin',
-      subtitle: 'Executive Authority',
+      subtitle: 'Official ID & Secret Code',
       icon: <ShieldCheck className="w-4 h-4" />,
       badgeColor: 'bg-purple-600 text-white',
     },
     {
       id: 'first-time',
       title: 'First-Time User',
-      subtitle: 'Mobile OTP & Policy Agreement',
+      subtitle: 'Mobile OTP Verification',
       icon: <Smartphone className="w-4 h-4" />,
       badgeColor: 'bg-cyan-500 text-white',
     },
@@ -248,45 +256,45 @@ export const LoginPage: React.FC<LoginPageProps> = ({
               onClick={onBackToSelection}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0A1E4A] hover:bg-[#143474] border border-[#143474] text-slate-200 hover:text-white rounded-xl text-xs font-semibold transition-colors cursor-pointer"
             >
-              <span>← All Portals</span>
+              <span>← Choose Another Portal</span>
             </button>
           )}
 
           {/* Language selector */}
           <div className="relative">
-          <button
-            onClick={() => setIsLangOpen(!isLangOpen)}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0A1E4A] hover:bg-[#143474] border border-[#143474] rounded-xl text-xs text-slate-200 transition-colors cursor-pointer"
-          >
-            <Globe className="w-3.5 h-3.5 text-[#00C2FF]" />
-            <span className="font-semibold uppercase">{language}</span>
-          </button>
+            <button
+              onClick={() => setIsLangOpen(!isLangOpen)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0A1E4A] hover:bg-[#143474] border border-[#143474] rounded-xl text-xs text-slate-200 transition-colors cursor-pointer"
+            >
+              <Globe className="w-3.5 h-3.5 text-[#00C2FF]" />
+              <span className="font-semibold uppercase">{language}</span>
+            </button>
 
-          {isLangOpen && (
-            <div className="absolute right-0 mt-2 w-48 max-h-72 overflow-y-auto bg-[#0A1E4A] rounded-xl shadow-2xl border border-[#143474] py-1 z-50">
-              <div className="px-3 py-1.5 border-b border-[#143474] text-[10px] font-bold text-slate-400 uppercase">
-                {t('language')} (11 Languages)
+            {isLangOpen && (
+              <div className="absolute right-0 mt-2 w-48 max-h-72 overflow-y-auto bg-[#0A1E4A] rounded-xl shadow-2xl border border-[#143474] py-1 z-50">
+                <div className="px-3 py-1.5 border-b border-[#143474] text-[10px] font-bold text-slate-400 uppercase">
+                  {t('language')} (11 Languages)
+                </div>
+                {languageOptions.map((opt) => (
+                  <button
+                    key={opt.code}
+                    onClick={() => {
+                      setLanguage(opt.code);
+                      setIsLangOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-3 py-1.5 text-xs text-left hover:bg-[#143474] transition-colors ${
+                      language === opt.code ? 'bg-[#0084FF]/20 font-bold text-[#00C2FF]' : 'text-slate-300'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className="text-sm">{opt.flag}</span>
+                      <span>{opt.nativeName}</span>
+                    </span>
+                    <span className="text-[10px] text-slate-400">{opt.name}</span>
+                  </button>
+                ))}
               </div>
-              {languageOptions.map((opt) => (
-                <button
-                  key={opt.code}
-                  onClick={() => {
-                    setLanguage(opt.code);
-                    setIsLangOpen(false);
-                  }}
-                  className={`w-full flex items-center justify-between px-3 py-1.5 text-xs text-left hover:bg-[#143474] transition-colors ${
-                    language === opt.code ? 'bg-[#0084FF]/20 font-bold text-[#00C2FF]' : 'text-slate-300'
-                  }`}
-                >
-                  <span className="flex items-center gap-2">
-                    <span className="text-sm">{opt.flag}</span>
-                    <span>{opt.nativeName}</span>
-                  </span>
-                  <span className="text-[10px] text-slate-400">{opt.name}</span>
-                </button>
-              ))}
-            </div>
-          )}
+            )}
           </div>
         </div>
       </header>
@@ -294,7 +302,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       {/* Main Content Area */}
       <main className="flex-1 flex items-center justify-center p-4 sm:p-6 z-10">
         <div className="w-full max-w-5xl space-y-6">
-          {/* Sector Navigation Selector */}
+          {/* Sector Navigation Tabs */}
           <div className="bg-[#0A1E4A]/90 p-2 rounded-2xl border border-[#143474] shadow-xl backdrop-blur-md">
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1.5">
               {sectors.map((sec) => {
@@ -332,54 +340,68 @@ export const LoginPage: React.FC<LoginPageProps> = ({
             </div>
           </div>
 
-          {/* 1-Click Instant Demo Testing Bar */}
-          <div className="bg-[#061330]/90 p-3 sm:p-4 rounded-2xl border border-[#0084FF]/30 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-3">
+          {/* Quick-Fill Helper Bar */}
+          <div className="bg-[#061330]/90 p-3 sm:p-4 rounded-2xl border border-[#143474] shadow-lg flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
-              <span className="flex h-2.5 w-2.5 relative">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00C2FF] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#0084FF]"></span>
-              </span>
+              <Sparkles className="w-4 h-4 text-[#00C2FF]" />
               <div>
-                <p className="text-xs font-bold text-white flex items-center gap-1.5">
-                  <span>Quick Demo Access</span>
-                  <span className="text-[10px] text-[#00C2FF] font-normal font-mono bg-[#0A1E4A] px-1.5 py-0.5 rounded border border-[#143474]">1-Click</span>
-                </p>
-                <p className="text-[10px] text-slate-400">Instant login to evaluate portals without typing</p>
+                <p className="text-xs font-bold text-white">Pre-Configured Demo Credentials</p>
+                <p className="text-[10px] text-slate-400">Click below to automatically fill official credentials into the form:</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
-                onClick={() => switchDemoRole('student')}
-                className="px-3 py-1.5 bg-[#0084FF]/20 hover:bg-[#0084FF]/40 border border-[#0084FF]/40 text-[#00C2FF] rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                onClick={() => {
+                  setActiveSector('student');
+                  setStudentName('Rahul Sharma');
+                  setStudentAdmissionNo('ADM-2022-801');
+                  setStudentClass('Class 8-A');
+                  setStudentMobile('9876543210');
+                  setErrorMessage(null);
+                }}
+                className="px-2.5 py-1 bg-[#0A1E4A] hover:bg-[#143474] border border-[#143474] text-[#00C2FF] rounded-lg text-[11px] font-medium transition-colors cursor-pointer"
               >
-                <GraduationCap className="w-3.5 h-3.5" />
-                <span>Student</span>
+                Fill Student (Rahul Sharma)
               </button>
               <button
                 type="button"
-                onClick={() => switchDemoRole('parent')}
-                className="px-3 py-1.5 bg-emerald-950/60 hover:bg-emerald-900/80 border border-emerald-700/50 text-emerald-300 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                onClick={() => {
+                  setActiveSector('parent');
+                  setParentChildName('Rahul Sharma');
+                  setParentChildAdmissionNo('ADM-2022-801');
+                  setParentChildClass('Class 8-A');
+                  setParentMobile('9876543211');
+                  setErrorMessage(null);
+                }}
+                className="px-2.5 py-1 bg-[#0A1E4A] hover:bg-[#143474] border border-[#143474] text-emerald-300 rounded-lg text-[11px] font-medium transition-colors cursor-pointer"
               >
-                <Users className="w-3.5 h-3.5" />
-                <span>Parent</span>
+                Fill Parent (Anita Sharma)
               </button>
               <button
                 type="button"
-                onClick={() => switchDemoRole('teacher')}
-                className="px-3 py-1.5 bg-amber-950/60 hover:bg-amber-900/80 border border-amber-700/50 text-amber-300 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                onClick={() => {
+                  setActiveSector('teacher');
+                  setTeacherOfficialId('teacher@dmps.edu.in');
+                  setTeacherSecretCode('cbse 2026');
+                  setErrorMessage(null);
+                }}
+                className="px-2.5 py-1 bg-[#0A1E4A] hover:bg-[#143474] border border-[#143474] text-amber-300 rounded-lg text-[11px] font-medium transition-colors cursor-pointer"
               >
-                <UserCheck className="w-3.5 h-3.5" />
-                <span>Teacher</span>
+                Fill Teacher (cbse 2026)
               </button>
               <button
                 type="button"
-                onClick={() => switchDemoRole('principal')}
-                className="px-3 py-1.5 bg-purple-950/60 hover:bg-purple-900/80 border border-purple-700/50 text-purple-300 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                onClick={() => {
+                  setActiveSector('principal');
+                  setPrincipalOfficialId('principal@dmps.edu.in');
+                  setPrincipalSecretCode('cbse 2026');
+                  setErrorMessage(null);
+                }}
+                className="px-2.5 py-1 bg-[#0A1E4A] hover:bg-[#143474] border border-[#143474] text-purple-300 rounded-lg text-[11px] font-medium transition-colors cursor-pointer"
               >
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span>Principal</span>
+                Fill Principal (cbse 2026)
               </button>
             </div>
           </div>
@@ -388,13 +410,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           <div className="bg-[#0A1E4A]/95 border border-[#143474] rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-md max-w-2xl mx-auto">
             {/* Error Banner */}
             {errorMessage && (
-              <div className="mb-5 p-3.5 bg-rose-950/70 border border-rose-800/80 rounded-2xl text-rose-200 text-xs flex items-start gap-2.5">
+              <div className="mb-5 p-3.5 bg-rose-950/70 border border-rose-800/80 rounded-2xl text-rose-200 text-xs flex items-start gap-2.5 animate-shake">
                 <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
                 <span className="leading-snug">{errorMessage}</span>
               </div>
             )}
 
-            {/* SECTOR 1: STUDENT LOGIN */}
+            {/* SECTOR 1: STUDENT LOGIN (Name, Admission No, Class, Registered Mobile) */}
             {activeSector === 'student' && (
               <form onSubmit={handleStudentSubmit} className="space-y-4">
                 <div className="flex items-center justify-between border-b border-[#143474] pb-4">
@@ -403,19 +425,19 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                       <GraduationCap className="w-6 h-6" />
                     </div>
                     <div>
-                      <h3 className="text-base font-bold text-white">Student Portal Access</h3>
-                      <p className="text-xs text-slate-400">Enter your official student credentials</p>
+                      <h3 className="text-base font-bold text-white">Student Portal Sign In</h3>
+                      <p className="text-xs text-slate-400">Required: Name, Admission Number, Class & Mobile</p>
                     </div>
                   </div>
                   <span className="text-[10px] font-mono text-[#00C2FF] bg-[#061330] px-2.5 py-1 rounded-full border border-[#143474]">
-                    Sector: Student
+                    Role: Student
                   </span>
                 </div>
 
                 {/* 1. Student Name */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    Student Full Name
+                    Student Full Name <span className="text-rose-400">*</span>
                   </label>
                   <div className="relative">
                     <UserIcon className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -430,11 +452,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   </div>
                 </div>
 
-                {/* 2. Student Admission Number & 3. Student Roll Number */}
+                {/* 2. Admission Number & 3. Class */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                      Student Admission Number
+                      Admission Number <span className="text-rose-400">*</span>
                     </label>
                     <div className="relative">
                       <KeyRound className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -451,50 +473,51 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
                   <div>
                     <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                      Student Roll Number
+                      Enrolled Class <span className="text-rose-400">*</span>
                     </label>
                     <div className="relative">
-                      <Hash className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <BookOpen className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                       <input
-                        type="number"
+                        type="text"
                         required
-                        value={studentRollNo}
-                        onChange={(e) => setStudentRollNo(e.target.value)}
-                        placeholder="e.g. 14"
-                        className="w-full pl-10 pr-4 py-2.5 bg-[#061330] border border-[#143474] focus:border-[#0084FF] focus:ring-2 focus:ring-[#0084FF]/20 rounded-xl text-white outline-none transition-all text-xs font-mono placeholder:text-slate-500"
+                        value={studentClass}
+                        onChange={(e) => setStudentClass(e.target.value)}
+                        placeholder="e.g. Class 8-A"
+                        className="w-full pl-10 pr-4 py-2.5 bg-[#061330] border border-[#143474] focus:border-[#0084FF] focus:ring-2 focus:ring-[#0084FF]/20 rounded-xl text-white outline-none transition-all text-xs placeholder:text-slate-500"
                       />
                     </div>
                   </div>
                 </div>
 
-                {/* Quick prefill demo accounts */}
-                <div className="pt-2">
-                  <p className="text-[11px] text-slate-400 mb-2">Verified Student Demo Presets:</p>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setStudentName('Rahul Sharma');
-                        setStudentAdmissionNo('ADM-2022-801');
-                        setStudentRollNo('14');
-                      }}
-                      className="px-2.5 py-1 bg-[#061330] hover:bg-[#143474] text-[#00C2FF] rounded-lg text-[10px] font-mono border border-[#143474] transition-colors cursor-pointer"
-                    >
-                      Rahul Sharma (8A • #14 • ADM-2022-801)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setStudentName('Priya Sharma');
-                        setStudentAdmissionNo('ADM-2024-502');
-                        setStudentRollNo('8');
-                      }}
-                      className="px-2.5 py-1 bg-[#061330] hover:bg-[#143474] text-[#00C2FF] rounded-lg text-[10px] font-mono border border-[#143474] transition-colors cursor-pointer"
-                    >
-                      Priya Sharma (5B • #8 • ADM-2024-502)
-                    </button>
+                {/* 4. Registered Mobile Number */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                    Registered Mobile Number <span className="text-rose-400">*</span>
+                  </label>
+                  <div className="relative">
+                    <Phone className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="tel"
+                      required
+                      value={studentMobile}
+                      onChange={(e) => setStudentMobile(e.target.value)}
+                      placeholder="e.g. 9876543210"
+                      className="w-full pl-10 pr-4 py-2.5 bg-[#061330] border border-[#143474] focus:border-[#0084FF] focus:ring-2 focus:ring-[#0084FF]/20 rounded-xl text-white outline-none transition-all text-xs font-mono placeholder:text-slate-500"
+                    />
                   </div>
                 </div>
+
+                <div className="p-3 bg-[#061330] border border-[#143474] rounded-xl text-[11px] text-slate-400 flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-[#00C2FF] shrink-0" />
+                  <span>Personal student records (marks, attendance, AI tutoring) are protected by RBAC.</span>
+                </div>
+
+                {/* Institutional hCaptcha Security Challenge */}
+                <HCaptchaSecurityWidget
+                  siteKey="c246a8cc-fdc2-4734-911c-8194ee5eb8ec"
+                  theme="dark"
+                  onVerify={(token) => setCaptchaToken(token)}
+                />
 
                 <Button
                   type="submit"
@@ -504,12 +527,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   isLoading={isLoading}
                   rightIcon={<ArrowRight className="w-4 h-4" />}
                 >
-                  {isLoading ? 'Verifying Student...' : 'Access Student Portal'}
+                  {isLoading ? 'Verifying Student Details...' : 'Authenticate & Enter Student Portal'}
                 </Button>
               </form>
             )}
 
-            {/* SECTOR 2: PARENT LOGIN */}
+            {/* SECTOR 2: PARENT LOGIN (Child Name, Child Adm No, Child Class, Registered Mobile) */}
             {activeSector === 'parent' && (
               <form onSubmit={handleParentSubmit} className="space-y-4">
                 <div className="flex items-center justify-between border-b border-[#143474] pb-4">
@@ -518,19 +541,19 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                       <Users className="w-6 h-6" />
                     </div>
                     <div>
-                      <h3 className="text-base font-bold text-white">Parent & Guardian Portal</h3>
-                      <p className="text-xs text-slate-400">Enter your ward's student record details</p>
+                      <h3 className="text-base font-bold text-white">Parent / Guardian Portal Sign In</h3>
+                      <p className="text-xs text-slate-400">Required: Ward's Name, Admission No, Class & Parent Mobile</p>
                     </div>
                   </div>
                   <span className="text-[10px] font-mono text-emerald-400 bg-[#061330] px-2.5 py-1 rounded-full border border-[#143474]">
-                    Sector: Parent
+                    Role: Parent
                   </span>
                 </div>
 
-                {/* 1. Student Name */}
+                {/* 1. Ward Name */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    Child / Student Full Name
+                    Ward / Student Full Name <span className="text-rose-400">*</span>
                   </label>
                   <div className="relative">
                     <UserIcon className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -545,11 +568,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   </div>
                 </div>
 
-                {/* 2. Admission Number & 3. Roll Number */}
+                {/* 2. Admission Number & 3. Class */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                      Student Admission Number
+                      Ward's Admission Number <span className="text-rose-400">*</span>
                     </label>
                     <div className="relative">
                       <KeyRound className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -566,26 +589,51 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
                   <div>
                     <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                      Student Roll Number
+                      Ward's Enrolled Class <span className="text-rose-400">*</span>
                     </label>
                     <div className="relative">
-                      <Hash className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <BookOpen className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                       <input
-                        type="number"
+                        type="text"
                         required
-                        value={parentChildRollNo}
-                        onChange={(e) => setParentChildRollNo(e.target.value)}
-                        placeholder="e.g. 14"
-                        className="w-full pl-10 pr-4 py-2.5 bg-[#061330] border border-[#143474] focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 rounded-xl text-white outline-none transition-all text-xs font-mono placeholder:text-slate-500"
+                        value={parentChildClass}
+                        onChange={(e) => setParentChildClass(e.target.value)}
+                        placeholder="e.g. Class 8-A"
+                        className="w-full pl-10 pr-4 py-2.5 bg-[#061330] border border-[#143474] focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 rounded-xl text-white outline-none transition-all text-xs placeholder:text-slate-500"
                       />
                     </div>
                   </div>
                 </div>
 
+                {/* 4. Registered Parent Mobile */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                    Parent Registered Mobile Number <span className="text-rose-400">*</span>
+                  </label>
+                  <div className="relative">
+                    <Phone className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="tel"
+                      required
+                      value={parentMobile}
+                      onChange={(e) => setParentMobile(e.target.value)}
+                      placeholder="e.g. 9876543211"
+                      className="w-full pl-10 pr-4 py-2.5 bg-[#061330] border border-[#143474] focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 rounded-xl text-white outline-none transition-all text-xs font-mono placeholder:text-slate-500"
+                    />
+                  </div>
+                </div>
+
                 <div className="p-3 bg-[#061330] border border-[#143474] rounded-xl text-[11px] text-slate-400 flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>Allows linked parent account to access daily attendance telemetry & academic reports.</span>
+                  <span>Enables live daily bus GPS, classroom notifications, and verified report card downloads.</span>
                 </div>
+
+                {/* Institutional hCaptcha Security Challenge */}
+                <HCaptchaSecurityWidget
+                  siteKey="c246a8cc-fdc2-4734-911c-8194ee5eb8ec"
+                  theme="dark"
+                  onVerify={(token) => setCaptchaToken(token)}
+                />
 
                 <Button
                   type="submit"
@@ -595,12 +643,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   isLoading={isLoading}
                   rightIcon={<ArrowRight className="w-4 h-4" />}
                 >
-                  {isLoading ? 'Connecting Parent Portal...' : 'Access Parent Portal'}
+                  {isLoading ? 'Verifying Ward Details...' : 'Authenticate & Enter Parent Portal'}
                 </Button>
               </form>
             )}
 
-            {/* SECTOR 3: TEACHER LOGIN */}
+            {/* SECTOR 3: TEACHER LOGIN (Official ID + Secret Code: cbse 2026) */}
             {activeSector === 'teacher' && (
               <form onSubmit={handleTeacherSubmit} className="space-y-4">
                 <div className="flex items-center justify-between border-b border-[#143474] pb-4">
@@ -609,62 +657,74 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                       <UserCheck className="w-6 h-6" />
                     </div>
                     <div>
-                      <h3 className="text-base font-bold text-white">Faculty & Teacher Portal</h3>
-                      <p className="text-xs text-slate-400">Classroom attendance & grade management</p>
+                      <h3 className="text-base font-bold text-white">Faculty & Teacher Sign In</h3>
+                      <p className="text-xs text-slate-400">Required: Official School ID & Secret Authorization Code</p>
                     </div>
                   </div>
                   <span className="text-[10px] font-mono text-amber-400 bg-[#061330] px-2.5 py-1 rounded-full border border-[#143474]">
-                    Sector: Teacher
+                    Role: Teacher
                   </span>
                 </div>
 
-                {/* 1. Registered Phone Number */}
+                {/* 1. School Official ID / Email */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    Registered Faculty Mobile Number
+                    School Official ID / Email <span className="text-rose-400">*</span>
                   </label>
                   <div className="relative">
-                    <Phone className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <School className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input
-                      type="tel"
+                      type="text"
                       required
-                      value={teacherPhone}
-                      onChange={(e) => setTeacherPhone(e.target.value)}
-                      placeholder="e.g. 9876543212"
-                      className="w-full pl-10 pr-4 py-2.5 bg-[#061330] border border-[#143474] focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 rounded-xl text-white outline-none transition-all text-xs font-mono placeholder:text-slate-500"
+                      value={teacherOfficialId}
+                      onChange={(e) => setTeacherOfficialId(e.target.value)}
+                      placeholder="e.g. teacher@dmps.edu.in or TCH-8801"
+                      className="w-full pl-10 pr-4 py-2.5 bg-[#061330] border border-[#143474] focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 rounded-xl text-white outline-none transition-all text-xs placeholder:text-slate-500"
                     />
                   </div>
                 </div>
 
-                {/* 2. Password */}
+                {/* 2. School Official Secret Code */}
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-semibold text-slate-300">Account Password</label>
-                    <span className="text-[10px] text-slate-400 font-mono">Demo: teacher123</span>
+                    <label className="text-xs font-semibold text-slate-300">
+                      Official Secret Code <span className="text-rose-400">*</span>
+                    </label>
+                    <span className="text-[10px] text-amber-400/90 font-mono bg-amber-950/40 px-2 py-0.5 rounded border border-amber-800/40">
+                      Secret Code: cbse 2026
+                    </span>
                   </div>
                   <div className="relative">
                     <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input
-                      type={showTeacherPassword ? 'text' : 'password'}
+                      type={showTeacherSecret ? 'text' : 'password'}
                       required
-                      value={teacherPassword}
-                      onChange={(e) => setTeacherPassword(e.target.value)}
-                      placeholder="Enter teacher password"
-                      className="w-full pl-10 pr-10 py-2.5 bg-[#061330] border border-[#143474] focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 rounded-xl text-white outline-none transition-all text-xs placeholder:text-slate-500"
+                      value={teacherSecretCode}
+                      onChange={(e) => setTeacherSecretCode(e.target.value)}
+                      placeholder="Enter secret code (cbse 2026)"
+                      className="w-full pl-10 pr-10 py-2.5 bg-[#061330] border border-[#143474] focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 rounded-xl text-white outline-none transition-all text-xs font-mono placeholder:text-slate-500"
                     />
                     <button
                       type="button"
-                      onClick={() => setShowTeacherPassword(!showTeacherPassword)}
+                      onClick={() => setShowTeacherSecret(!showTeacherSecret)}
                       className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
                     >
-                      {showTeacherPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {showTeacherSecret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                 </div>
 
-                <div className="p-3 bg-[#061330] border border-[#143474] rounded-xl text-[11px] text-slate-400">
-                  Default Faculty: <strong>Amit Kumar (Class Teacher 8A)</strong> • Mobile: <span className="font-mono text-amber-400">9876543212</span>
+                <div className="p-3 bg-[#061330] border border-[#143474] rounded-xl text-[11px] text-slate-400 flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span>Authorized Faculty access: grants attendance marking, exam grade uploads, and student circulars.</span>
                 </div>
+
+                {/* Institutional hCaptcha Security Challenge */}
+                <HCaptchaSecurityWidget
+                  siteKey="c246a8cc-fdc2-4734-911c-8194ee5eb8ec"
+                  theme="dark"
+                  onVerify={(token) => setCaptchaToken(token)}
+                />
 
                 <Button
                   type="submit"
@@ -674,12 +734,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   isLoading={isLoading}
                   rightIcon={<ArrowRight className="w-4 h-4" />}
                 >
-                  {isLoading ? 'Verifying Faculty Credentials...' : 'Access Faculty Portal'}
+                  {isLoading ? 'Verifying Faculty Clearance...' : 'Authorize & Enter Faculty Portal'}
                 </Button>
               </form>
             )}
 
-            {/* SECTOR 4: PRINCIPAL / ADMIN LOGIN */}
+            {/* SECTOR 4: PRINCIPAL LOGIN (Official ID + Secret Code: cbse 2026) */}
             {activeSector === 'principal' && (
               <form onSubmit={handlePrincipalSubmit} className="space-y-4">
                 <div className="flex items-center justify-between border-b border-[#143474] pb-4">
@@ -688,62 +748,74 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                       <ShieldCheck className="w-6 h-6" />
                     </div>
                     <div>
-                      <h3 className="text-base font-bold text-white">Institutional Administration</h3>
-                      <p className="text-xs text-slate-400">Executive principal desk & macro audit trail</p>
+                      <h3 className="text-base font-bold text-white">Principal & Executive Sign In</h3>
+                      <p className="text-xs text-slate-400">Required: School Official ID & Administration Secret Code</p>
                     </div>
                   </div>
                   <span className="text-[10px] font-mono text-purple-400 bg-[#061330] px-2.5 py-1 rounded-full border border-[#143474]">
-                    Sector: Principal / Admin
+                    Role: Principal / Admin
                   </span>
                 </div>
 
-                {/* 1. Registered Phone */}
+                {/* 1. Official Admin ID */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    Registered Administrative Mobile Number
+                    School Official ID / Email <span className="text-rose-400">*</span>
                   </label>
                   <div className="relative">
-                    <Phone className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <School className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input
-                      type="tel"
+                      type="text"
                       required
-                      value={principalPhone}
-                      onChange={(e) => setPrincipalPhone(e.target.value)}
-                      placeholder="e.g. 9876543213"
-                      className="w-full pl-10 pr-4 py-2.5 bg-[#061330] border border-[#143474] focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 rounded-xl text-white outline-none transition-all text-xs font-mono placeholder:text-slate-500"
+                      value={principalOfficialId}
+                      onChange={(e) => setPrincipalOfficialId(e.target.value)}
+                      placeholder="e.g. principal@dmps.edu.in or ADM-001"
+                      className="w-full pl-10 pr-4 py-2.5 bg-[#061330] border border-[#143474] focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 rounded-xl text-white outline-none transition-all text-xs placeholder:text-slate-500"
                     />
                   </div>
                 </div>
 
-                {/* 2. Password */}
+                {/* 2. School Official Secret Code */}
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-semibold text-slate-300">Executive Password</label>
-                    <span className="text-[10px] text-slate-400 font-mono">Demo: principal123</span>
+                    <label className="text-xs font-semibold text-slate-300">
+                      Official Secret Code <span className="text-rose-400">*</span>
+                    </label>
+                    <span className="text-[10px] text-purple-400/90 font-mono bg-purple-950/40 px-2 py-0.5 rounded border border-purple-800/40">
+                      Secret Code: cbse 2026
+                    </span>
                   </div>
                   <div className="relative">
                     <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input
-                      type={showPrincipalPassword ? 'text' : 'password'}
+                      type={showPrincipalSecret ? 'text' : 'password'}
                       required
-                      value={principalPassword}
-                      onChange={(e) => setPrincipalPassword(e.target.value)}
-                      placeholder="Enter administrator password"
-                      className="w-full pl-10 pr-10 py-2.5 bg-[#061330] border border-[#143474] focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 rounded-xl text-white outline-none transition-all text-xs placeholder:text-slate-500"
+                      value={principalSecretCode}
+                      onChange={(e) => setPrincipalSecretCode(e.target.value)}
+                      placeholder="Enter secret code (cbse 2026)"
+                      className="w-full pl-10 pr-10 py-2.5 bg-[#061330] border border-[#143474] focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 rounded-xl text-white outline-none transition-all text-xs font-mono placeholder:text-slate-500"
                     />
                     <button
                       type="button"
-                      onClick={() => setShowPrincipalPassword(!showPrincipalPassword)}
+                      onClick={() => setShowPrincipalSecret(!showPrincipalSecret)}
                       className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
                     >
-                      {showPrincipalPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {showPrincipalSecret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                 </div>
 
-                <div className="p-3 bg-[#061330] border border-[#143474] rounded-xl text-[11px] text-slate-400">
-                  Principal Account: <strong>Dr. Priya Sen</strong> • Mobile: <span className="font-mono text-purple-400">9876543213</span>
+                <div className="p-3 bg-[#061330] border border-[#143474] rounded-xl text-[11px] text-slate-400 flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-purple-400 shrink-0" />
+                  <span>Executive Principal clearance: Institutional macro metrics, CBSE compliance, staff roster, and audit logs.</span>
                 </div>
+
+                {/* Institutional hCaptcha Security Challenge */}
+                <HCaptchaSecurityWidget
+                  siteKey="c246a8cc-fdc2-4734-911c-8194ee5eb8ec"
+                  theme="dark"
+                  onVerify={(token) => setCaptchaToken(token)}
+                />
 
                 <Button
                   type="submit"
@@ -753,12 +825,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   isLoading={isLoading}
                   rightIcon={<ArrowRight className="w-4 h-4" />}
                 >
-                  {isLoading ? 'Verifying Executive Rights...' : 'Access Executive Console'}
+                  {isLoading ? 'Verifying Executive Clearance...' : 'Authorize & Enter Management Portal'}
                 </Button>
               </form>
             )}
 
-            {/* SECTOR 5: FIRST-TIME REGISTRATION / OTP VERIFICATION */}
+            {/* SECTOR 5: FIRST-TIME REGISTRATION VIA OTP */}
             {activeSector === 'first-time' && (
               <form onSubmit={handleFirstTimeSubmit} className="space-y-4">
                 <div className="flex items-center justify-between border-b border-[#143474] pb-4">
@@ -768,141 +840,154 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     </div>
                     <div>
                       <h3 className="text-base font-bold text-white">First-Time User Registration</h3>
-                      <p className="text-xs text-slate-400">Mobile OTP Verification & Policy Consent</p>
+                      <p className="text-xs text-slate-400">Verify your registered mobile number via SMS OTP</p>
                     </div>
                   </div>
                   <span className="text-[10px] font-mono text-cyan-400 bg-[#061330] px-2.5 py-1 rounded-full border border-[#143474]">
-                    First-Time OTP
+                    OTP Verification
                   </span>
                 </div>
 
-                {otpSentMessage && (
-                  <div className="p-3 bg-cyan-950/80 border border-cyan-800 rounded-2xl text-cyan-200 text-xs flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />
-                    <span>{otpSentMessage}</span>
-                  </div>
-                )}
-
-                {/* Role selection */}
+                {/* Role Selection */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    Select Your Institution Role
-                  </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {(['student', 'parent', 'teacher', 'principal'] as UserRole[]).map((r) => (
-                      <button
-                        type="button"
-                        key={r}
-                        onClick={() => setFtRole(r)}
-                        className={`p-2.5 rounded-xl border text-xs font-bold capitalize transition-all cursor-pointer ${
-                          ftRole === r
-                            ? 'bg-[#0084FF] border-[#0084FF] text-white'
-                            : 'bg-[#061330] border-[#143474] text-slate-300 hover:border-slate-500'
-                        }`}
-                      >
-                        {r === 'principal' ? 'Principal/Admin' : r}
-                      </button>
-                    ))}
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">Select Your Role</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setFtRole('student')}
+                      className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer ${
+                        ftRole === 'student'
+                          ? 'bg-[#0084FF]/20 border-[#0084FF] text-[#00C2FF]'
+                          : 'bg-[#061330] border-[#143474] text-slate-400'
+                      }`}
+                    >
+                      <GraduationCap className="w-3.5 h-3.5" />
+                      <span>Student</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFtRole('parent')}
+                      className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer ${
+                        ftRole === 'parent'
+                          ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400'
+                          : 'bg-[#061330] border-[#143474] text-slate-400'
+                      }`}
+                    >
+                      <Users className="w-3.5 h-3.5" />
+                      <span>Parent</span>
+                    </button>
                   </div>
                 </div>
 
-                {/* Full Name & Mobile */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                      Your Full Name
-                    </label>
+                {/* Name */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">Full Name</label>
+                  <div className="relative">
+                    <UserIcon className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input
                       type="text"
                       required
                       value={ftName}
                       onChange={(e) => setFtName(e.target.value)}
-                      placeholder="Enter full name"
-                      className="w-full px-3.5 py-2.5 bg-[#061330] border border-[#143474] focus:border-[#0084FF] rounded-xl text-white outline-none text-xs"
+                      placeholder="e.g. Rahul Sharma"
+                      className="w-full pl-10 pr-4 py-2.5 bg-[#061330] border border-[#143474] focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 rounded-xl text-white outline-none transition-all text-xs placeholder:text-slate-500"
                     />
                   </div>
+                </div>
 
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                      Registered Mobile Number
-                    </label>
-                    <div className="flex gap-2">
+                {/* Mobile & OTP Trigger */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                    10-Digit Registered Mobile
+                  </label>
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Phone className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                       <input
                         type="tel"
                         required
                         value={ftMobile}
                         onChange={(e) => setFtMobile(e.target.value)}
-                        placeholder="10-digit mobile"
-                        className="w-full px-3.5 py-2.5 bg-[#061330] border border-[#143474] focus:border-[#0084FF] rounded-xl text-white outline-none text-xs font-mono"
+                        placeholder="e.g. 9876543210"
+                        className="w-full pl-10 pr-4 py-2.5 bg-[#061330] border border-[#143474] focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 rounded-xl text-white outline-none transition-all text-xs font-mono placeholder:text-slate-500"
                       />
-                      <button
-                        type="button"
-                        onClick={handleSendOtp}
-                        disabled={isSendingOtp}
-                        className="px-3 py-2 bg-[#0084FF]/20 hover:bg-[#0084FF]/40 border border-[#0084FF]/40 text-[#00C2FF] rounded-xl text-xs font-bold shrink-0 transition-colors cursor-pointer"
-                      >
-                        {isSendingOtp ? 'Sending...' : 'Get OTP'}
-                      </button>
                     </div>
+                    <button
+                      type="button"
+                      onClick={handleSendOtp}
+                      disabled={isSendingOtp}
+                      className="px-3.5 py-2.5 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl text-xs font-bold shrink-0 transition-colors disabled:opacity-50 cursor-pointer"
+                    >
+                      {isSendingOtp ? 'Sending...' : 'Get OTP'}
+                    </button>
                   </div>
                 </div>
 
-                {/* OTP Verification Box */}
+                {otpSentMessage && (
+                  <div className="p-2.5 bg-cyan-950/60 border border-cyan-800/80 rounded-xl text-cyan-300 text-xs flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 shrink-0 text-cyan-400" />
+                    <span>{otpSentMessage}</span>
+                  </div>
+                )}
+
+                {/* OTP Input */}
                 <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-semibold text-slate-300">
-                      Enter 6-Digit Verification OTP
-                    </label>
-                    <span className="text-[10px] text-slate-400 font-mono">Demo OTP: 123456</span>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                    6-Digit Verification OTP (Demo: 123456)
+                  </label>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="text"
+                      maxLength={6}
+                      required
+                      value={ftOtp}
+                      onChange={(e) => setFtOtp(e.target.value)}
+                      placeholder="123456"
+                      className="w-full pl-10 pr-4 py-2.5 bg-[#061330] border border-[#143474] focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 rounded-xl text-white outline-none transition-all text-xs font-mono tracking-widest text-center placeholder:text-slate-500"
+                    />
                   </div>
-                  <input
-                    type="text"
-                    maxLength={6}
-                    required
-                    value={ftOtp}
-                    onChange={(e) => setFtOtp(e.target.value)}
-                    placeholder="Enter 6-digit code (123456)"
-                    className="w-full px-4 py-2.5 bg-[#061330] border border-[#143474] focus:border-[#0084FF] focus:ring-2 focus:ring-[#0084FF]/20 rounded-xl text-white outline-none transition-all text-sm font-mono tracking-widest text-center"
-                  />
                 </div>
 
-                {/* MANDATORY Terms & Policies Checkbox */}
-                <div className="pt-2 p-3.5 bg-[#061330] border border-[#143474] rounded-2xl space-y-2">
-                  <label className="flex items-start gap-3 cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      required
-                      checked={ftAgreed}
-                      onChange={(e) => setFtAgreed(e.target.checked)}
-                      className="w-4 h-4 rounded mt-0.5 bg-[#07132B] border-[#143474] text-[#0084FF] focus:ring-[#0084FF] shrink-0"
-                    />
-                    <span className="text-xs text-slate-300 leading-relaxed">
-                      I have read, understood, and agree to the{' '}
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setIsTermsModalOpen(true);
-                        }}
-                        className="text-[#00C2FF] font-bold underline hover:text-cyan-300 inline-flex items-center gap-0.5"
-                      >
-                        Terms & Conditions and Student Data Privacy Policies
-                        <ExternalLink className="w-3 h-3 inline" />
-                      </button>
-                      {' '}governing institutional ERP access and SchoolSaathi AI multi-modal data processing.
-                    </span>
+                {/* Terms checkbox */}
+                <div className="flex items-start gap-2.5 pt-1">
+                  <input
+                    type="checkbox"
+                    id="terms-check"
+                    checked={ftAgreed}
+                    onChange={(e) => setFtAgreed(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-[#143474] bg-[#061330] text-[#0084FF] focus:ring-0 cursor-pointer"
+                  />
+                  <label htmlFor="terms-check" className="text-xs text-slate-300 select-none">
+                    I agree to the{' '}
+                    <button
+                      type="button"
+                      onClick={() => setIsTermsModalOpen(true)}
+                      className="text-[#00C2FF] underline hover:text-white"
+                    >
+                      Terms of Service & Privacy Policy
+                    </button>{' '}
+                    under DPDP Act & CBSE guidelines.
                   </label>
                 </div>
+
+                {/* Institutional hCaptcha Security Challenge */}
+                <HCaptchaSecurityWidget
+                  siteKey="c246a8cc-fdc2-4734-911c-8194ee5eb8ec"
+                  theme="dark"
+                  onVerify={(token) => setCaptchaToken(token)}
+                />
 
                 <Button
                   type="submit"
                   variant="primary"
                   size="lg"
-                  className="w-full mt-4 bg-gradient-to-r from-cyan-500 to-[#0084FF] hover:from-cyan-600 hover:to-[#0070DB] text-white font-bold shadow-lg shadow-[#0084FF]/25 cursor-pointer"
+                  className="w-full mt-4 bg-cyan-600 hover:bg-cyan-700 text-white font-bold shadow-lg shadow-cyan-600/25 cursor-pointer"
                   isLoading={isLoading}
+                  disabled={!ftAgreed}
                   rightIcon={<ArrowRight className="w-4 h-4" />}
                 >
-                  {isLoading ? 'Verifying OTP & Registering...' : 'Verify OTP & Enter Portal'}
+                  {isLoading ? 'Verifying OTP...' : 'Complete Verification & Enter Portal'}
                 </Button>
               </form>
             )}
@@ -913,23 +998,21 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       {/* Footer */}
       <footer className="p-4 sm:p-6 text-center text-[11px] text-slate-400 z-10 border-t border-[#143474] max-w-7xl w-full mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <span>SchoolSaathi AI • Your AI-Powered School Companion</span>
+          <span>SchoolSaathi AI • Institutional ERP Gateway</span>
         </div>
         <button
           type="button"
           onClick={() => setIsTermsModalOpen(true)}
-          className="text-[#00C2FF] hover:underline flex items-center gap-1 font-semibold cursor-pointer"
+          className="text-slate-400 hover:text-white transition-colors underline cursor-pointer"
         >
-          <FileCheck2 className="w-3.5 h-3.5" />
-          <span>View Terms of Service & Privacy Policy</span>
+          Terms of Service, DPDP Privacy & School Data Compliance
         </button>
       </footer>
 
-      {/* Terms and Privacy Modal */}
+      {/* Legal & Policy Modal */}
       <TermsPolicyModal
         isOpen={isTermsModalOpen}
         onClose={() => setIsTermsModalOpen(false)}
-        onAccept={() => setFtAgreed(true)}
       />
     </div>
   );

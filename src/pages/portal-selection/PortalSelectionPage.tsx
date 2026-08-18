@@ -42,9 +42,8 @@ export const PortalSelectionPage: React.FC<PortalSelectionPageProps> = ({
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
   const [hoveredPortal, setHoveredPortal] = useState<UserRole | null>(null);
 
-  const handleQuickEnter = (role: UserRole) => {
-    switchDemoRole(role);
-    onSelectPortal(role);
+  const handleOpenLogin = (role: UserRole) => {
+    onOpenCredentialLogin(role);
   };
 
   const portals: {
@@ -278,29 +277,23 @@ export const PortalSelectionPage: React.FC<PortalSelectionPageProps> = ({
                   </div>
                 </div>
 
-                {/* Bottom Actions & Quick Enter */}
+                {/* Bottom Authentication Actions */}
                 <div className="pt-4 border-t border-white/10 space-y-2">
                   <div className="text-[10px] text-slate-400 flex items-center justify-between pb-1">
-                    <span>Demo Profile:</span>
-                    <span className="font-medium text-slate-200 truncate max-w-[150px]">{portal.demoAccount}</span>
+                    <span>Required Verification:</span>
+                    <span className="font-medium text-slate-200">
+                      {portal.id === 'student' || portal.id === 'parent' ? 'Name + Adm + Class + Mobile' : 'Official ID + Secret Code'}
+                    </span>
                   </div>
 
-                  {/* 1-Click Instant Enter Button */}
+                  {/* Open Role Authentication Form */}
                   <button
-                    onClick={() => handleQuickEnter(portal.id)}
+                    onClick={() => handleOpenLogin(portal.id)}
                     className={`w-full py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${portal.buttonColor}`}
                   >
-                    <span>Enter {portal.title}</span>
+                    <KeyRound className="w-4 h-4" />
+                    <span>Login to {portal.title}</span>
                     <ArrowRight className="w-4 h-4" />
-                  </button>
-
-                  {/* Credentials / Specific Login */}
-                  <button
-                    onClick={() => onOpenCredentialLogin(portal.id)}
-                    className="w-full py-2 px-3 bg-[#061330]/80 hover:bg-[#061330] border border-[#143474] text-slate-300 hover:text-white rounded-xl text-[11px] font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                  >
-                    <KeyRound className="w-3 h-3 text-slate-400" />
-                    <span>Sign In with ID & Password</span>
                   </button>
                 </div>
               </div>

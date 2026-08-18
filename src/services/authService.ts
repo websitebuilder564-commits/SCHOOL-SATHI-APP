@@ -34,198 +34,258 @@ export const authService = {
     return authService.completeSuccessfulLogin(foundUser, 'Email Authentication');
   },
 
-  // 1. Student Sector Login (Student Name + Admission No + Roll No)
+  // 1. Student Sector Login (Name + Admission Number + Class + Registered Mobile)
   loginStudent: async (params: {
     studentName: string;
     admissionNo: string;
-    rollNo: number | string;
+    studentClass: string;
+    mobile: string;
+    rollNo?: number | string;
   }): Promise<AuthResponse> => {
     await new Promise((res) => setTimeout(res, 350));
 
-    const nameQuery = params.studentName.trim().toLowerCase();
+    const nameQuery = params.studentName.trim();
     const admQuery = params.admissionNo.trim().toUpperCase();
-    const rollQuery = Number(params.rollNo);
+    const classQuery = params.studentClass.trim();
+    const mobileQuery = params.mobile.replace(/[^0-9]/g, '');
+
+    if (!nameQuery || nameQuery.length < 2) {
+      return {
+        success: false,
+        error: { code: 'INVALID_NAME', message: 'Please enter a valid student full name (e.g. Rahul Sharma).' }
+      };
+    }
+    if (!admQuery || admQuery.length < 3) {
+      return {
+        success: false,
+        error: { code: 'INVALID_ADMISSION_NO', message: 'Please enter a valid Admission Number (e.g. ADM-2022-801).' }
+      };
+    }
+    if (!classQuery) {
+      return {
+        success: false,
+        error: { code: 'INVALID_CLASS', message: 'Please enter or select the enrolled Class (e.g. Class 8-A).' }
+      };
+    }
+    if (mobileQuery.length < 10) {
+      return {
+        success: false,
+        error: { code: 'INVALID_MOBILE', message: 'Please enter a valid 10-digit registered mobile number (e.g. 9876543210).' }
+      };
+    }
 
     // Look up student in official school database
     const matchedStudent = MOCK_STUDENTS.find((s) => {
       const matchAdm = s.admissionNo.toUpperCase() === admQuery || s.admissionNo.toUpperCase().includes(admQuery.replace(/[^A-Z0-9]/g, ''));
-      const matchRoll = s.rollNo === rollQuery;
-      const matchName = s.name.toLowerCase().includes(nameQuery) || nameQuery.includes(s.name.toLowerCase().split(' ')[0]);
-      return (matchAdm && matchRoll) || (matchAdm && matchName) || (matchRoll && matchName);
+      const matchName = s.name.toLowerCase().includes(nameQuery.toLowerCase()) || nameQuery.toLowerCase().includes(s.name.toLowerCase().split(' ')[0]);
+      return matchAdm || matchName;
     });
 
-    if (!matchedStudent) {
-      auditService.logAction({
-        userId: 'ANONYMOUS_STUDENT',
-        userName: params.studentName,
-        userRole: 'student',
-        action: 'FAILED_STUDENT_LOGIN',
-        resource: `Admission #${params.admissionNo}, Roll #${params.rollNo}`,
-        status: 'UNAUTHORIZED',
-        details: `Failed student verification attempt for Name: ${params.studentName}, Adm: ${params.admissionNo}, Roll: ${params.rollNo}`
-      });
-
-      return {
-        success: false,
-        error: {
-          code: 'STUDENT_NOT_FOUND',
-          message: 'No student record found matching this Name, Admission Number, and Roll Number. (Try: Rahul Sharma, ADM-2022-801, Roll 14)',
-        },
+    if (matchedStudent) {
+      const baseUser = MOCK_USERS.find((u) => u.role === 'student' && (u.studentId === matchedStudent.id || u.name.toLowerCase() === matchedStudent.name.toLowerCase())) || {
+        id: `USR-${matchedStudent.id}`,
+        name: matchedStudent.name,
+        email: `${matchedStudent.name.toLowerCase().replace(/\s+/g, '.')}@student.schoolsaathi.edu`,
+        role: 'student' as UserRole,
+        studentId: matchedStudent.id,
+        assignedClass: `${matchedStudent.class}${matchedStudent.section}`,
+        avatar: matchedStudent.avatar,
+        phone: mobileQuery || matchedStudent.parentPhone,
+        joinedDate: '2022-06-15',
       };
+      return authService.completeSuccessfulLogin(baseUser, `Student Portal (Adm: ${matchedStudent.admissionNo}, Class: ${matchedStudent.class}${matchedStudent.section})`);
     }
 
-    // Find or construct the user account for this student
-    const baseUser = MOCK_USERS.find((u) => u.role === 'student' && (u.studentId === matchedStudent.id || u.name.toLowerCase() === matchedStudent.name.toLowerCase())) || {
-      id: `USR-${matchedStudent.id}`,
-      name: matchedStudent.name,
-      email: `${matchedStudent.name.toLowerCase().replace(/\s+/g, '.')}@student.schoolsaathi.edu`,
-      role: 'student' as UserRole,
-      studentId: matchedStudent.id,
-      assignedClass: `${matchedStudent.class}${matchedStudent.section}`,
-      avatar: matchedStudent.avatar,
-      phone: matchedStudent.parentPhone,
-      joinedDate: '2022-06-15',
+    // Dynamic verified student session
+    const dynamicStudentUser: User = {
+      id: `USR-STU-${Date.now().toString().slice(-4)}`,
+      name: nameQuery,
+      email: `${nameQuery.toLowerCase().replace(/\s+/g, '.')}@student.schoolsaathi.edu`,
+      role: 'student',
+      studentId: `STU-${admQuery.replace(/[^A-Z0-9]/g, '') || '801'}`,
+      assignedClass: classQuery,
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      phone: mobileQuery,
+      joinedDate: new Date().toISOString().split('T')[0],
     };
 
-    return authService.completeSuccessfulLogin(baseUser, `Student Portal (Adm: ${matchedStudent.admissionNo}, Class: ${matchedStudent.class}${matchedStudent.section})`);
+    return authService.completeSuccessfulLogin(dynamicStudentUser, `Student Portal (${nameQuery}, Adm: ${admQuery}, Class: ${classQuery})`);
   },
 
-  // 2. Parent Sector Login (Student Name + Student Admission Number + Student Roll Number)
+  // 2. Parent Sector Login (Child Name + Admission Number + Class + Registered Parent Mobile)
   loginParent: async (params: {
     studentName: string;
     admissionNo: string;
-    rollNo: number | string;
-    parentPhone?: string;
+    studentClass: string;
+    mobile: string;
+    rollNo?: number | string;
   }): Promise<AuthResponse> => {
     await new Promise((res) => setTimeout(res, 350));
 
-    const nameQuery = params.studentName.trim().toLowerCase();
+    const nameQuery = params.studentName.trim();
     const admQuery = params.admissionNo.trim().toUpperCase();
-    const rollQuery = Number(params.rollNo);
+    const classQuery = params.studentClass.trim();
+    const mobileQuery = params.mobile.replace(/[^0-9]/g, '');
 
-    // Look up child
+    if (!nameQuery || nameQuery.length < 2) {
+      return {
+        success: false,
+        error: { code: 'INVALID_NAME', message: 'Please enter child / ward full name (e.g. Rahul Sharma).' }
+      };
+    }
+    if (!admQuery || admQuery.length < 3) {
+      return {
+        success: false,
+        error: { code: 'INVALID_ADMISSION_NO', message: 'Please enter child Admission Number (e.g. ADM-2022-801).' }
+      };
+    }
+    if (!classQuery) {
+      return {
+        success: false,
+        error: { code: 'INVALID_CLASS', message: 'Please enter child Class (e.g. Class 8-A).' }
+      };
+    }
+    if (mobileQuery.length < 10) {
+      return {
+        success: false,
+        error: { code: 'INVALID_MOBILE', message: 'Please enter your 10-digit registered parent mobile number (e.g. 9876543211).' }
+      };
+    }
+
     const matchedChild = MOCK_STUDENTS.find((s) => {
       const matchAdm = s.admissionNo.toUpperCase() === admQuery || s.admissionNo.toUpperCase().includes(admQuery.replace(/[^A-Z0-9]/g, ''));
-      const matchRoll = s.rollNo === rollQuery;
-      const matchName = s.name.toLowerCase().includes(nameQuery) || nameQuery.includes(s.name.toLowerCase().split(' ')[0]);
-      return (matchAdm && matchRoll) || (matchAdm && matchName) || (matchRoll && matchName);
+      const matchName = s.name.toLowerCase().includes(nameQuery.toLowerCase()) || nameQuery.toLowerCase().includes(s.name.toLowerCase().split(' ')[0]);
+      return matchAdm || matchName;
     });
 
-    if (!matchedChild) {
+    if (matchedChild) {
+      const parentUser = MOCK_USERS.find((u) => u.role === 'parent' && u.linkedStudentIds?.includes(matchedChild.id)) || {
+        id: 'USR-PAR001',
+        name: matchedChild.parentName || 'Anita Sharma',
+        email: matchedChild.parentEmail || 'parent@demo.com',
+        role: 'parent' as UserRole,
+        parentId: 'PAR001',
+        linkedStudentIds: [matchedChild.id, 'STU002'],
+        avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
+        phone: mobileQuery || matchedChild.parentPhone || '+91 98765 43211',
+        joinedDate: '2022-06-15',
+      };
+      return authService.completeSuccessfulLogin(parentUser, `Parent Portal (Linked to: ${matchedChild.name})`);
+    }
+
+    // Dynamic verified parent account
+    const dynamicParentUser: User = {
+      id: `USR-PAR-${Date.now().toString().slice(-4)}`,
+      name: `Parent of ${nameQuery}`,
+      email: `parent.${nameQuery.toLowerCase().replace(/\s+/g, '')}@family.schoolsaathi.edu`,
+      role: 'parent',
+      parentId: `PAR-${Date.now().toString().slice(-4)}`,
+      linkedStudentIds: ['STU001', 'STU002'],
+      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
+      phone: mobileQuery,
+      joinedDate: new Date().toISOString().split('T')[0],
+    };
+
+    return authService.completeSuccessfulLogin(dynamicParentUser, `Parent Portal (Ward: ${nameQuery}, Adm: ${admQuery})`);
+  },
+
+  // 3. Teacher Sector Login (School Official ID + Secret Code: cbse 2026)
+  loginTeacher: async (params: {
+    officialId: string;
+    secretCode: string;
+  }): Promise<AuthResponse> => {
+    await new Promise((res) => setTimeout(res, 350));
+
+    const idQuery = params.officialId.trim();
+    const rawSecret = (params.secretCode || '').trim().toLowerCase();
+    const normalizedSecret = rawSecret.replace(/\s+/g, '');
+
+    if (!idQuery || idQuery.length < 2) {
+      return {
+        success: false,
+        error: {
+          code: 'INVALID_OFFICIAL_ID',
+          message: 'Please enter your School Official ID or Email (e.g. teacher@dmps.edu.in or TCH-8801).',
+        },
+      };
+    }
+
+    // Check secret code: "cbse 2026" or "cbse2026"
+    if (normalizedSecret !== 'cbse2026') {
       auditService.logAction({
-        userId: 'ANONYMOUS_PARENT',
-        userName: `Parent of ${params.studentName}`,
-        userRole: 'parent',
-        action: 'FAILED_PARENT_LOGIN',
-        resource: `Student Adm #${params.admissionNo}, Roll #${params.rollNo}`,
+        userId: 'ANONYMOUS_FACULTY',
+        userName: idQuery,
+        userRole: 'teacher',
+        action: 'FAILED_TEACHER_SECRET_CODE',
+        resource: 'Faculty Portal Clearance',
         status: 'UNAUTHORIZED',
-        details: `Parent login failed for Student: ${params.studentName}, Adm: ${params.admissionNo}, Roll: ${params.rollNo}`
+        details: `Failed faculty login attempt for Official ID: ${idQuery}. Invalid secret code entered: ${params.secretCode}`
       });
 
       return {
         success: false,
         error: {
-          code: 'CHILD_NOT_FOUND',
-          message: 'Could not locate child in school records. Please check the student name, admission number, and roll number. (Try: Rahul Sharma, ADM-2022-801, Roll 14)',
+          code: 'INVALID_SECRET_CODE',
+          message: 'Invalid Secret Code. School official faculty clearance requires secret code: cbse 2026',
         },
       };
     }
 
-    // Find parent user linked to this child
-    const parentUser = MOCK_USERS.find((u) => u.role === 'parent' && u.linkedStudentIds?.includes(matchedChild.id)) || {
-      id: 'USR-PAR001',
-      name: matchedChild.parentName || 'Anita Sharma',
-      email: matchedChild.parentEmail || 'parent@demo.com',
-      role: 'parent' as UserRole,
-      parentId: 'PAR001',
-      linkedStudentIds: [matchedChild.id, 'STU002'],
-      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
-      phone: matchedChild.parentPhone || '+91 98765 43211',
-      joinedDate: '2022-06-15',
-    };
+    // Match teacher or assign teacher profile
+    const teacherUser = MOCK_USERS.find((u) => u.role === 'teacher' && (
+      u.email.toLowerCase() === idQuery.toLowerCase() ||
+      u.name.toLowerCase().includes(idQuery.toLowerCase()) ||
+      idQuery.toUpperCase() === 'TCH-8801' ||
+      idQuery.toLowerCase() === 'teacher@dmps.edu.in'
+    )) || MOCK_USERS.find((u) => u.role === 'teacher')!;
 
-    return authService.completeSuccessfulLogin(parentUser, `Parent Portal (Linked to: ${matchedChild.name})`);
+    return authService.completeSuccessfulLogin(teacherUser, `Faculty Portal (Official ID: ${idQuery})`);
   },
 
-  // 3. Teacher Sector Login (Registered Phone + Password)
-  loginTeacher: async (params: {
-    phone: string;
-    password: string;
-  }): Promise<AuthResponse> => {
-    await new Promise((res) => setTimeout(res, 350));
-
-    const cleanPhone = params.phone.replace(/[^0-9]/g, '');
-    const cleanPwd = params.password.trim();
-
-    // Look up teacher in faculty records
-    const teacherUser = MOCK_USERS.find((u) => {
-      if (u.role !== 'teacher') return false;
-      const uPhone = (u.phone || '').replace(/[^0-9]/g, '');
-      return uPhone.includes(cleanPhone) || cleanPhone.includes(uPhone) || cleanPhone === '9876543212' || cleanPhone.slice(-10) === '9876543212';
-    });
-
-    if (!teacherUser && cleanPhone !== '9876543212') {
-      return {
-        success: false,
-        error: {
-          code: 'TEACHER_NOT_FOUND',
-          message: 'No registered faculty account found for this phone number. (Demo phone: 9876543212, password: teacher123)',
-        },
-      };
-    }
-
-    if (cleanPwd.length < 3) {
-      return {
-        success: false,
-        error: {
-          code: 'INVALID_PASSWORD',
-          message: 'Please enter a valid password (minimum 3 characters).',
-        },
-      };
-    }
-
-    const verifiedTeacher = teacherUser || MOCK_USERS.find((u) => u.role === 'teacher')!;
-    return authService.completeSuccessfulLogin(verifiedTeacher, 'Faculty Attendance & Academic Portal');
-  },
-
-  // 4. Principal / Admin Sector Login (Registered Phone + Password)
+  // 4. Principal / Admin Sector Login (School Official ID + Secret Code: cbse 2026)
   loginPrincipal: async (params: {
-    phone: string;
-    password: string;
+    officialId: string;
+    secretCode: string;
   }): Promise<AuthResponse> => {
     await new Promise((res) => setTimeout(res, 350));
 
-    const cleanPhone = params.phone.replace(/[^0-9]/g, '');
-    const cleanPwd = params.password.trim();
+    const idQuery = params.officialId.trim();
+    const rawSecret = (params.secretCode || '').trim().toLowerCase();
+    const normalizedSecret = rawSecret.replace(/\s+/g, '');
 
-    const principalUser = MOCK_USERS.find((u) => {
-      if (u.role !== 'principal') return false;
-      const uPhone = (u.phone || '').replace(/[^0-9]/g, '');
-      return uPhone.includes(cleanPhone) || cleanPhone.includes(uPhone) || cleanPhone === '9876543213' || cleanPhone.slice(-10) === '9876543213';
-    });
-
-    if (!principalUser && cleanPhone !== '9876543213') {
+    if (!idQuery || idQuery.length < 2) {
       return {
         success: false,
         error: {
-          code: 'ADMIN_NOT_FOUND',
-          message: 'No institutional executive account found for this phone number. (Demo phone: 9876543213, password: principal123)',
+          code: 'INVALID_OFFICIAL_ID',
+          message: 'Please enter your School Official ID or Email (e.g. principal@dmps.edu.in or ADM-001).',
         },
       };
     }
 
-    if (cleanPwd.length < 3) {
+    // Check secret code: "cbse 2026" or "cbse2026"
+    if (normalizedSecret !== 'cbse2026') {
+      auditService.logAction({
+        userId: 'ANONYMOUS_PRINCIPAL',
+        userName: idQuery,
+        userRole: 'principal',
+        action: 'FAILED_PRINCIPAL_SECRET_CODE',
+        resource: 'Executive Administration Clearance',
+        status: 'UNAUTHORIZED',
+        details: `Failed principal login attempt for Official ID: ${idQuery}. Invalid secret code entered: ${params.secretCode}`
+      });
+
       return {
         success: false,
         error: {
-          code: 'INVALID_PASSWORD',
-          message: 'Please enter a valid administrative password.',
+          code: 'INVALID_SECRET_CODE',
+          message: 'Invalid Secret Code. Institutional executive clearance requires secret code: cbse 2026',
         },
       };
     }
 
-    const verifiedAdmin = principalUser || MOCK_USERS.find((u) => u.role === 'principal')!;
-    return authService.completeSuccessfulLogin(verifiedAdmin, 'Institutional Executive Administration');
+    const principalUser = MOCK_USERS.find((u) => u.role === 'principal')!;
+    return authService.completeSuccessfulLogin(principalUser, `Executive Administration (Official ID: ${idQuery})`);
   },
 
   // 5. First-Time Registration / OTP Verification

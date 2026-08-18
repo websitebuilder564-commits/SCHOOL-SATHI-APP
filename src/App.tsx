@@ -19,8 +19,8 @@ const AppContent: React.FC = () => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [showSplash, setShowSplash] = useState<boolean>(true);
   
-  // App view state: 'website' (Institutional Landing Page), 'selection' (Portal Choice Hub), 'login' (Credentials Form), 'portal' (Active Role Dashboard)
-  const [viewMode, setViewMode] = useState<'website' | 'selection' | 'login' | 'portal'>('website');
+  // App view state: 'selection' (Portal Choice Hub), 'login' (Credentials Form), 'portal' (Active Role Dashboard), 'website' (Institutional Landing Page)
+  const [viewMode, setViewMode] = useState<'selection' | 'login' | 'portal' | 'website'>('selection');
   const [selectedLoginSector, setSelectedLoginSector] = useState<LoginSector>('student');
 
   // If user completes login via LoginPage form, transition to portal view

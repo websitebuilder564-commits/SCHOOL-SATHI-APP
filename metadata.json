@@ -1,0 +1,6 @@
+{
+  "name": "SchoolSaathi AI - School ERP Platform",
+  "description": "AI-Ready School ERP Platform featuring Role-Based Portals (Student, Parent, Teacher, Principal), Attendance Operations, Academic Analytics, Escalation Workflows, Multi-Language UI, and XYZ AI Integration Gateway.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

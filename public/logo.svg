@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+  <defs>
+    <!-- Vibrant Blue Gradient for S Swoosh -->
+    <linearGradient id="sBlueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00C2FF" />
+      <stop offset="45%" stop-color="#0084FF" />
+      <stop offset="100%" stop-color="#0052CC" />
+    </linearGradient>
+    <!-- Cap Navy Gradient -->
+    <linearGradient id="capNavyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#143474" />
+      <stop offset="100%" stop-color="#091838" />
+    </linearGradient>
+    <filter id="subtleShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#003b8e" flood-opacity="0.15" />
+    </filter>
+  </defs>
+
+  <g transform="translate(0, -10)">
+    <!-- Graduation Cap Top Diamond -->
+    <g filter="url(#subtleShadow)">
+      <polygon points="250,55 375,108 250,160 125,108" fill="url(#capNavyGrad)" />
+      <!-- Cap Base Underneath -->
+      <path d="M 180,128 Q 250,158 320,128 L 320,145 Q 250,178 180,145 Z" fill="#0A1C40" />
+      <!-- Cap Button -->
+      <circle cx="250" cy="107" r="7" fill="#0084FF" />
+      <!-- Tassel String and Charm -->
+      <path d="M 250,107 Q 310,118 340,145 L 342,185" fill="none" stroke="#0084FF" stroke-width="4" stroke-linecap="round" />
+      <!-- Tassel Fringe -->
+      <polygon points="338,185 346,185 348,205 336,205" fill="#0084FF" />
+    </g>
+
+    <!-- Top Loop of 'S' Swoosh -->
+    <path d="M 240,132 C 315,132 355,165 345,215 C 335,260 270,265 240,265" 
+          fill="none" stroke="url(#sBlueGrad)" stroke-width="44" stroke-linecap="round" />
+
+    <!-- Bottom Loop of 'S' Swoosh -->
+    <path d="M 260,265 C 220,265 175,280 185,335 C 198,395 295,395 330,340" 
+          fill="none" stroke="url(#sBlueGrad)" stroke-width="44" stroke-linecap="round" />
+
+    <!-- AI Bot Face Speech Bubble -->
+    <g filter="url(#subtleShadow)">
+      <!-- Ear Speakers -->
+      <rect x="180" y="222" width="16" height="34" rx="8" fill="#0084FF" />
+      <rect x="304" y="222" width="16" height="34" rx="8" fill="#0084FF" />
+      
+      <!-- Speech Bubble Head Contour (White with blue border) -->
+      <path d="M 250,185 
+               C 285,185 312,210 312,240 
+               C 312,270 285,295 250,295 
+               C 238,295 228,292 220,286 
+               L 204,300 
+               L 208,278 
+               C 196,268 188,255 188,240 
+               C 188,210 215,185 250,185 Z" 
+            fill="#FFFFFF" stroke="#0084FF" stroke-width="12" stroke-linejoin="round" />
+
+      <!-- Bot Eyes -->
+      <circle cx="232" cy="235" r="7.5" fill="#0A1E4A" />
+      <circle cx="268" cy="235" r="7.5" fill="#0A1E4A" />
+
+      <!-- Bot Friendly Smile -->
+      <path d="M 241,250 Q 250,259 259,250" fill="none" stroke="#0A1E4A" stroke-width="4" stroke-linecap="round" />
+    </g>
+  </g>
+
+  <!-- Typography: SchoolSaathi AI -->
+  <g transform="translate(250, 420)" text-anchor="middle">
+    <g transform="translate(-185, 0)">
+      <!-- "School" in Deep Navy -->
+      <text x="0" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="52" font-weight="900" fill="#0A1E4A" letter-spacing="-1">School</text>
+      <!-- "Saathi" in Electric Blue -->
+      <text x="175" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="52" font-weight="900" fill="#0084FF" letter-spacing="-1">Saathi</text>
+      <!-- "AI" Badge -->
+      <rect x="340" y="-44" width="76" height="54" rx="14" fill="#0084FF" />
+      <text x="378" y="-4" font-family="system-ui, -apple-system, sans-serif" font-size="34" font-weight="900" fill="#FFFFFF" text-anchor="middle">AI</text>
+    </g>
+
+    <!-- Tagline: "— Your AI-Powered School Companion —" -->
+    <g transform="translate(0, 32)">
+      <!-- Left Line -->
+      <line x1="-200" y1="-5" x2="-160" y2="-5" stroke="#0084FF" stroke-width="2.5" stroke-linecap="round" />
+      <!-- Text -->
+      <text x="0" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="16.5" font-weight="700" fill="#2C3E50" letter-spacing="0.5">Your AI-Powered School Companion</text>
+      <!-- Right Line -->
+      <line x1="160" y1="-5" x2="200" y2="-5" stroke="#0084FF" stroke-width="2.5" stroke-linecap="round" />
+    </g>
+  </g>
+</svg>

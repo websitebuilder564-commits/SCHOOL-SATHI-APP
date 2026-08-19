@@ -2,21 +2,18 @@ import React from 'react';
 import { WebsiteHeader } from './components/WebsiteHeader';
 import { HeroSection } from './components/HeroSection';
 import { HeroFeatureStrip } from './components/HeroFeatureStrip';
-import { ProjectOverviewSection } from './components/ProjectOverviewSection';
-import { StatsBanner } from './components/StatsBanner';
-import { ProblemStatementSection } from './components/ProblemStatementSection';
-import { ObjectivesSection } from './components/ObjectivesSection';
-import { KeyFeaturesSection } from './components/KeyFeaturesSection';
-import { RolesSection } from './components/RolesSection';
+import { AboutSection } from './components/AboutSection';
+import { StatisticsSection } from './components/StatisticsSection';
+import { FeaturesGridSection } from './components/FeaturesGridSection';
+import { StudentExperienceSection } from './components/StudentExperienceSection';
+import { TeacherExperienceSection } from './components/TeacherExperienceSection';
+import { ParentExperienceSection } from './components/ParentExperienceSection';
 import { AiAssistantSection } from './components/AiAssistantSection';
-import { VoiceAvatarSection } from './components/VoiceAvatarSection';
-import { MultilingualSection } from './components/MultilingualSection';
-import { MockErpApisSection } from './components/MockErpApisSection';
-import { EscalationSection } from './components/EscalationSection';
-import { SecuritySection } from './components/SecuritySection';
+import { LearningResourcesSection } from './components/LearningResourcesSection';
+import { UpcomingEventsSection } from './components/UpcomingEventsSection';
+import { TestimonialsSection } from './components/TestimonialsSection';
 import { CtaSection } from './components/CtaSection';
 import { WebsiteFooter } from './components/WebsiteFooter';
-import { UserRole } from '../../types';
 
 interface SchoolSaathiWebsiteProps {
   onOpenPortal: (sector?: 'student' | 'parent' | 'teacher' | 'principal') => void;
@@ -35,65 +32,59 @@ export const SchoolSaathiWebsite: React.FC<SchoolSaathiWebsiteProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-white text-[#172033] antialiased selection:bg-[#1557D6] selection:text-white font-sans">
-      {/* 1. Header & Navigation */}
+    <div className="min-h-screen bg-white text-[#0B2545] antialiased selection:bg-[#0F766E] selection:text-white font-sans">
+      {/* 1. Header with Slim Top Bar & Sticky Navbar */}
       <WebsiteHeader
         onOpenPortal={onOpenPortal}
         onOpenLiveDemo={handleScrollToAi}
       />
 
-      {/* 2. Hero Section */}
+      {/* 2. Full-Width Impact Hero Section */}
       <HeroSection
         onOpenPortal={() => onOpenPortal()}
         onOpenLiveDemo={handleScrollToAi}
       />
 
-      {/* 3. Floating Hero Feature Strip (01-04) */}
+      {/* 3. Four Overlapping Modern Feature Cards (01 to 04) */}
       <HeroFeatureStrip />
 
-      {/* 4. Project Overview Section with Editorial Collage */}
-      <ProjectOverviewSection onOpenPortal={() => onOpenPortal()} />
+      {/* 4. Visually Rich Two-Column About Section with Student Photo Collage */}
+      <AboutSection onOpenPortal={() => onOpenPortal()} />
 
-      {/* 5. Numerical Metrics & Stats Strip */}
-      <StatsBanner />
+      {/* 5. Full-Width Image-Backed Statistics Section (500+ Schools, 25K+ Students, 2K+ Teachers, 99% Satisfaction) */}
+      <StatisticsSection />
 
-      {/* 6. Problem Statement Section (4 Cards) */}
-      <ProblemStatementSection />
+      {/* 6. Comprehensive Platform Features Grid (12 Cards) */}
+      <FeaturesGridSection />
 
-      {/* 7. Main Goal / Objectives (4 Numbered Objectives) */}
-      <ObjectivesSection />
+      {/* 7. Student Experience Interactive Dashboard Mockup */}
+      <StudentExperienceSection onOpenPortal={onOpenPortal} />
 
-      {/* 8. Key Features Showcase Grid (10 Core Modules) */}
-      <KeyFeaturesSection />
+      {/* 8. Teacher Experience Dashboard Mockup */}
+      <TeacherExperienceSection onOpenPortal={onOpenPortal} />
 
-      {/* 9. User Roles & Permissions Section (Student, Parent, Teacher, Principal) */}
-      <RolesSection onOpenPortal={onOpenPortal} />
+      {/* 9. Parent Experience & Live Bus GPS Telemetry */}
+      <ParentExperienceSection onOpenPortal={onOpenPortal} />
 
-      {/* 10. AI Assistant / Live Chat Simulator Section */}
+      {/* 10. AI School Assistant Interactive Simulation */}
       <AiAssistantSection />
 
-      {/* 11. Voice & AI Avatar Section (Deep Navy) */}
-      <VoiceAvatarSection onExperienceAi={handleScrollToAi} />
+      {/* 11. Explore Learning Resources (Math, Physics, Chemistry, CS, English, AI) */}
+      <LearningResourcesSection onExploreResource={() => onOpenPortal('student')} />
 
-      {/* 12. Multilingual Support Section (11 Indian Languages) */}
-      <MultilingualSection />
+      {/* 12. Upcoming Campus Events & Academic Calendar */}
+      <UpcomingEventsSection />
 
-      {/* 13. Mock School ERP APIs & Data Flow Architecture */}
-      <MockErpApisSection />
+      {/* 13. Testimonials from Students, Parents, Teachers & Principals */}
+      <TestimonialsSection />
 
-      {/* 14. Teacher & Management Escalation Section */}
-      <EscalationSection />
-
-      {/* 15. Privacy & Security by Design (4 Pillars) */}
-      <SecuritySection />
-
-      {/* 16. Institutional Call to Action Banner */}
+      {/* 14. Large Premium Call-To-Action Banner */}
       <CtaSection
         onOpenPortal={() => onOpenPortal()}
         onOpenLiveDemo={handleScrollToAi}
       />
 
-      {/* 17. Complete Institutional Footer */}
+      {/* 15. Multi-Column Institutional Footer */}
       <WebsiteFooter onOpenPortal={onOpenPortal} />
     </div>
   );

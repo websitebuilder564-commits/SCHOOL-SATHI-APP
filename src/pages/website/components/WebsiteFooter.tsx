@@ -1,205 +1,143 @@
 import React from 'react';
 import {
   GraduationCap,
+  Sparkles,
   Phone,
   Mail,
   MapPin,
-  Globe,
-  ShieldCheck,
   Heart,
-  ChevronRight,
-  ArrowUp,
+  Facebook,
+  Twitter,
+  Linkedin,
+  Youtube,
+  Instagram,
+  ShieldCheck
 } from 'lucide-react';
 
 interface WebsiteFooterProps {
-  onOpenPortal: (sector?: 'student' | 'parent' | 'teacher' | 'principal') => void;
+  onOpenPortal: (role?: 'student' | 'parent' | 'teacher' | 'principal') => void;
 }
 
 export const WebsiteFooter: React.FC<WebsiteFooterProps> = ({ onOpenPortal }) => {
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
   return (
-    <footer className="bg-[#0B1736] text-slate-400 border-t border-slate-800 text-xs">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 pb-12 border-b border-slate-800">
-          {/* Brand Column */}
-          <div className="lg:col-span-4 space-y-4">
+    <footer className="bg-[#060E1D] text-slate-400 text-xs border-t border-slate-800">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+        
+        {/* Main 5-Column Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 mb-12">
+          
+          {/* Brand Col (2 cols wide on desktop) */}
+          <div className="col-span-2 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#1557D6] flex items-center justify-center text-white font-bold shadow-md">
-                <GraduationCap className="w-6 h-6" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0F766E] to-[#0B2545] flex items-center justify-center text-white shadow-md">
+                <GraduationCap className="w-5 h-5" />
               </div>
-              <div>
-                <span className="text-xl font-black tracking-tight text-white">
-                  SCHOOL<span className="text-[#00C2FF]">SAATHI</span>
-                </span>
-                <p className="text-[10px] text-slate-400 font-medium">
-                  Smart School AI Assistant Platform
-                </p>
-              </div>
+              <span className="text-xl font-black text-white tracking-tight">
+                School <span className="text-[#F59E0B]">Saathi</span>
+              </span>
             </div>
 
-            <p className="text-slate-300 leading-relaxed text-xs">
-              Empowering Indian educational institutions with human-like AI assistance, 11-language accessibility, real-time attendance telemetry, and CBSE-aligned academic workflows.
+            <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
+              Your Smart Companion for a Better School Experience. Connecting students, parents, teachers and school administration through one intelligent digital platform.
             </p>
 
-            <div className="space-y-2 text-slate-300 pt-2">
-              <div className="flex items-center gap-2.5">
-                <MapPin className="w-4 h-4 text-[#00C2FF] shrink-0" />
-                <span>CBSE Affiliation Complex, Institutional Area, New Delhi</span>
+            <div className="space-y-2 pt-2 text-xs text-slate-300">
+              <div className="flex items-center gap-2">
+                <Phone className="w-3.5 h-3.5 text-[#F59E0B]" />
+                <span>National Support: 1800-120-4455</span>
               </div>
-              <div className="flex items-center gap-2.5">
-                <Phone className="w-4 h-4 text-[#00C2FF] shrink-0" />
-                <span>National Helpline: <strong>1800-120-4455</strong></span>
+              <div className="flex items-center gap-2">
+                <Mail className="w-3.5 h-3.5 text-cyan-400" />
+                <span>contact@schoolsaathi.in</span>
               </div>
-              <div className="flex items-center gap-2.5">
-                <Mail className="w-4 h-4 text-[#00C2FF] shrink-0" />
-                <span>support@schoolsaathi.edu.in</span>
+              <div className="flex items-center gap-2">
+                <MapPin className="w-3.5 h-3.5 text-teal-400" />
+                <span>New Delhi • Bengaluru • Mumbai, India</span>
               </div>
+            </div>
+
+            {/* Social Media Icons */}
+            <div className="flex items-center gap-3 pt-2 text-slate-400">
+              <a href="#social" className="w-8 h-8 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center hover:text-blue-400 hover:border-blue-400 transition-colors" aria-label="Facebook">
+                <Facebook className="w-4 h-4" />
+              </a>
+              <a href="#social" className="w-8 h-8 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center hover:text-sky-400 hover:border-sky-400 transition-colors" aria-label="Twitter">
+                <Twitter className="w-4 h-4" />
+              </a>
+              <a href="#social" className="w-8 h-8 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center hover:text-blue-500 hover:border-blue-500 transition-colors" aria-label="LinkedIn">
+                <Linkedin className="w-4 h-4" />
+              </a>
+              <a href="#social" className="w-8 h-8 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center hover:text-red-500 hover:border-red-500 transition-colors" aria-label="YouTube">
+                <Youtube className="w-4 h-4" />
+              </a>
+              <a href="#social" className="w-8 h-8 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center hover:text-pink-400 hover:border-pink-400 transition-colors" aria-label="Instagram">
+                <Instagram className="w-4 h-4" />
+              </a>
             </div>
           </div>
 
-          {/* Quick Platform Links */}
-          <div className="lg:col-span-3 space-y-3">
-            <h4 className="text-sm font-bold text-white uppercase tracking-wider">
-              Product Overview
-            </h4>
-            <ul className="space-y-2">
-              <li>
-                <a href="#about" className="hover:text-white transition-colors">
-                  About School Saathi
-                </a>
-              </li>
-              <li>
-                <a href="#features" className="hover:text-white transition-colors">
-                  Key Capabilities (10 Modules)
-                </a>
-              </li>
-              <li>
-                <a href="#ai-assistant" className="hover:text-white transition-colors">
-                  Conversational AI Assistant
-                </a>
-              </li>
-              <li>
-                <a href="#voice-avatar" className="hover:text-white transition-colors">
-                  Voice & Neural Audio
-                </a>
-              </li>
-              <li>
-                <a href="#multilingual" className="hover:text-white transition-colors">
-                  11 Indian Languages
-                </a>
-              </li>
-              <li>
-                <a href="#technology" className="hover:text-white transition-colors">
-                  Mock ERP APIs & Flow
-                </a>
-              </li>
-              <li>
-                <a href="#security" className="hover:text-white transition-colors">
-                  DPDP & Security Standards
-                </a>
-              </li>
+          {/* Col 2: School Saathi */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-bold text-white uppercase tracking-wider">School Saathi</h4>
+            <ul className="space-y-2 text-xs">
+              <li><a href="#about" className="hover:text-white transition-colors">About Platform</a></li>
+              <li><a href="#features" className="hover:text-white transition-colors">Core Features</a></li>
+              <li><a href="#resources" className="hover:text-white transition-colors">Digital Resources</a></li>
+              <li><a href="#events" className="hover:text-white transition-colors">Events Calendar</a></li>
+              <li><a href="#contact" className="hover:text-white transition-colors">Partner With Us</a></li>
             </ul>
           </div>
 
-          {/* Direct Role Portals */}
-          <div className="lg:col-span-3 space-y-3">
-            <h4 className="text-sm font-bold text-white uppercase tracking-wider">
-              Role-Based Portals
-            </h4>
-            <ul className="space-y-2.5">
-              <li>
-                <button
-                  onClick={() => onOpenPortal('student')}
-                  className="hover:text-[#00C2FF] transition-colors flex items-center gap-1.5 cursor-pointer text-left"
-                >
-                  <ChevronRight className="w-3 h-3 text-[#1557D6]" />
-                  <span>Student Portal (Pupil Hub)</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => onOpenPortal('parent')}
-                  className="hover:text-[#00C2FF] transition-colors flex items-center gap-1.5 cursor-pointer text-left"
-                >
-                  <ChevronRight className="w-3 h-3 text-[#1557D6]" />
-                  <span>Parent Portal (Guardian Access)</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => onOpenPortal('teacher')}
-                  className="hover:text-[#00C2FF] transition-colors flex items-center gap-1.5 cursor-pointer text-left"
-                >
-                  <ChevronRight className="w-3 h-3 text-[#1557D6]" />
-                  <span>Teacher Portal (Faculty Command)</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => onOpenPortal('principal')}
-                  className="hover:text-[#00C2FF] transition-colors flex items-center gap-1.5 cursor-pointer text-left"
-                >
-                  <ChevronRight className="w-3 h-3 text-[#1557D6]" />
-                  <span>Principal Portal (Executive BI)</span>
-                </button>
-              </li>
+          {/* Col 3: For Students */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-bold text-emerald-400 uppercase tracking-wider">For Students</h4>
+            <ul className="space-y-2 text-xs">
+              <li><button type="button" onClick={() => onOpenPortal('student')} className="hover:text-white transition-colors text-left cursor-pointer">Student Dashboard</button></li>
+              <li><a href="#resources" className="hover:text-white transition-colors">Learning Resources</a></li>
+              <li><a href="#students" className="hover:text-white transition-colors">Assignments Hub</a></li>
+              <li><a href="#ai-assistant" className="hover:text-white transition-colors">AI Study Tutor</a></li>
+              <li><button type="button" onClick={() => onOpenPortal('student')} className="hover:text-white transition-colors text-left cursor-pointer">Exam Hall Tickets</button></li>
             </ul>
-
-            <div className="pt-3">
-              <button
-                onClick={() => onOpenPortal()}
-                className="w-full py-2 px-3.5 bg-[#1557D6] hover:bg-[#0B45B5] text-white font-bold rounded-xl text-center transition-colors cursor-pointer"
-              >
-                Open Portal Selection Hub
-              </button>
-            </div>
           </div>
 
-          {/* Compliance & Trust */}
-          <div className="lg:col-span-2 space-y-3">
-            <h4 className="text-sm font-bold text-white uppercase tracking-wider">
-              Compliance
-            </h4>
-            <div className="space-y-2 text-[11px]">
-              <div className="p-2.5 bg-white/5 rounded-xl border border-white/10 text-slate-300">
-                <p className="font-bold text-white">CBSE Curriculum</p>
-                <p className="text-slate-400">Aligned with NEP 2020 Guidelines</p>
-              </div>
-              <div className="p-2.5 bg-white/5 rounded-xl border border-white/10 text-slate-300">
-                <p className="font-bold text-white">DPDP Act 2023</p>
-                <p className="text-slate-400">Digital Data Privacy Compliant</p>
-              </div>
-              <div className="p-2.5 bg-white/5 rounded-xl border border-white/10 text-slate-300">
-                <p className="font-bold text-white">ISO 27001</p>
-                <p className="text-slate-400">Information Security Management</p>
-              </div>
-            </div>
+          {/* Col 4: For Parents */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider">For Parents</h4>
+            <ul className="space-y-2 text-xs">
+              <li><button type="button" onClick={() => onOpenPortal('parent')} className="hover:text-white transition-colors text-left cursor-pointer">Parent Portal</button></li>
+              <li><a href="#parents" className="hover:text-white transition-colors">Attendance Punch-in</a></li>
+              <li><a href="#parents" className="hover:text-white transition-colors">Live Bus GPS Tracking</a></li>
+              <li><a href="#parents" className="hover:text-white transition-colors">Online Fee Receipts</a></li>
+              <li><a href="#parents" className="hover:text-white transition-colors">Teacher Direct Connect</a></li>
+            </ul>
           </div>
+
+          {/* Col 5: For Teachers & Support */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-bold text-cyan-400 uppercase tracking-wider">For Teachers &amp; Support</h4>
+            <ul className="space-y-2 text-xs">
+              <li><button type="button" onClick={() => onOpenPortal('teacher')} className="hover:text-white transition-colors text-left cursor-pointer">Teacher Portal</button></li>
+              <li><button type="button" onClick={() => onOpenPortal('principal')} className="hover:text-white transition-colors text-left cursor-pointer">Principal Console</button></li>
+              <li><a href="#features" className="hover:text-white transition-colors">Attendance Register</a></li>
+              <li><a href="#ai-assistant" className="hover:text-white transition-colors">Help Center &amp; FAQs</a></li>
+              <li><a href="#contact" className="hover:text-white transition-colors">Privacy &amp; Security</a></li>
+            </ul>
+          </div>
+
         </div>
 
-        {/* Bottom Copyright & Back to Top */}
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-400 text-xs">
-          <p>© 2026-2027 SCHOOL SAATHI. All Rights Reserved. Built for Indian Schools & Universities.</p>
-
+        {/* Bottom Bar: Copyright & Compliance */}
+        <div className="pt-8 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
+          <div>
+            © 2026 School Saathi. All rights reserved.
+          </div>
           <div className="flex items-center gap-6">
-            <a href="#privacy" className="hover:text-white transition-colors">
-              Privacy Policy
-            </a>
-            <a href="#terms" className="hover:text-white transition-colors">
-              Terms of Service
-            </a>
-            <button
-              onClick={scrollToTop}
-              className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer flex items-center gap-1.5 font-semibold"
-            >
-              <span>Top</span>
-              <ArrowUp className="w-3.5 h-3.5" />
-            </button>
+            <a href="#terms" className="hover:text-slate-300 transition-colors">Terms of Service</a>
+            <a href="#privacy" className="hover:text-slate-300 transition-colors">Privacy Policy</a>
+            <a href="#compliance" className="hover:text-slate-300 transition-colors">CBSE Data Protection Compliant</a>
           </div>
         </div>
+
       </div>
     </footer>
   );

@@ -11,7 +11,7 @@ import { ParentPortal } from './pages/parent/ParentPortal';
 import { TeacherPortal } from './pages/teacher/TeacherPortal';
 import { ManagementPortal } from './pages/management/ManagementPortal';
 import { SplashScreen } from './components/splash/SplashScreen';
-import { BotpressChatbot } from './components/chat/BotpressChatbot';
+import { N8nChatbot } from './components/chat/N8nChatbot';
 import { UserRole } from './types';
 
 const AppContent: React.FC = () => {
@@ -165,8 +165,8 @@ const AppContent: React.FC = () => {
       {/* Active Screen View */}
       {renderCurrentView()}
 
-      {/* Global 24/7 WebChat Helpdesk Widget (Always present from start to end of site) */}
-      <BotpressChatbot
+      {/* Global 24/7 WebChat Helpdesk Widget (Always present from start to end of site powered by n8n) */}
+      <N8nChatbot
         onNavigatePortal={handleNavigatePortal}
         onNavigateLogin={handleNavigateLogin}
         onNavigateWebsite={handleNavigateWebsite}
